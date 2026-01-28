@@ -1,0 +1,25 @@
+.canvas-container {
+  display: flex;
+  justify-content: flex-start;  /* 保持水平居中  center*/
+  
+  align-items: flex-start;  /* 将 canvas 对齐到容器顶部 */
+  /* height: 100vh; */
+  margin: 10px auto 0 auto; /* 顶部和底部间距为 10px，左右自动居中 */
+  padding: 0; /* 移除内边距 */
+  box-sizing: border-box; /* 包括padding在内的尺寸计算 */
+  width: 100%; /* 设置容器宽度占用 90% */
+  max-width: 1300px; /* 限制容器的最大宽度 */
+  overflow: auto; /* 关键：允许滚动 */
+  /* border: 1px solid #ccc; */
+
+  }
+  
+  #canvas {
+    /* border: 2px solid gray; */
+    border: none; /* 或者 0 */
+    display: block;
+    /* width: 100%;
+    height: auto;
+    margin-top: 0; 移除顶部间距 */
+  }
+  

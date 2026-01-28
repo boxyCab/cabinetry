@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-reverse-engineering SYSTEM "dtd/hibernate-reverse-engineering-3.0.dtd">
+<hibernate-reverse-engineering>
+    <schema-selection match-catalog="cabinetdb"/>
+    <table-filter match-name="peninisula_connections"/>
+    <!-- 添加其他表 -->
+</hibernate-reverse-engineering>

@@ -1,0 +1,10 @@
+.carousel .control-arrow {
+    position: absolute; /* 让按钮不占据正常布局空间 */
+    top: 50%; /* 垂直居中 */
+    transform: translateY(-50%);
+    height: auto; /* 去掉固定高度 */
+  }
+  
+  .carousel .slider-wrapper {
+    overflow: hidden; /* 防止按钮撑开容器 */
+  }
