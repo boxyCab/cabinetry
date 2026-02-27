@@ -307,6 +307,7 @@ const DashboardSidebar = () => {
                     const updateOthersObject = {
                         ...kitchenInfoRedux.others,
                         canvasActiveId: 0,
+                        showCanvas: true
                     };
                     dispatch(updateOthers(updateOthersObject));
 

@@ -1,7 +1,7 @@
 package com.boxy.cabinet_design.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.Id;
+
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -397,6 +397,7 @@ public class Cabinet implements ObjectsComponent {
         this.rightobject = rightobject;
         this.rotation = rotation;
     }
+
 
     @Override
     public boolean equals(Object o) {

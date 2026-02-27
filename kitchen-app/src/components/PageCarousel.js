@@ -482,7 +482,8 @@ export default function PageCarousel({ paramKitchenId, inputFlg, refresh, onOpen
       (!hasData)
     ) {
       console.log("Loading shapes from API due to initial load or flag:", inputFlg);
-      const flag = inputFlg === "fromDrawer" ? 2 : 0;
+      // const flag = inputFlg === "fromDrawer" ? 2 : 0;
+      const flag = 0;
       setRegenerateflag(flag);
       loadShapes(flag);
       setActiveIndex(0);

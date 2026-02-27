@@ -18,13 +18,15 @@ import com.boxy.cabinet_design.entity.Wall;
 import com.boxy.cabinet_design.entity.WallConnection;
 import com.boxy.cabinet_design.entity.Window;
 import com.boxy.cabinet_design.repository.*;
+import com.boxy.cabinet_design.service.CanvasObjectGenerator.CandidateCabinet;
+
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -2894,9 +2896,27 @@ public class CanvasObjectGenerator {
             		
             		if (wallWidth > 0 ) {
             			if (cabinet.getStartposition() < wallWidth/2) {
-	            			cabinet.setName(cabinet.getName() + "R");
+                           if (StringUtils.hasText(cabinet.getLeftobject())) {
+                                String leftObject = cabinet.getLeftobject();
+                                if ("Range".equals(leftObject) || "appliance".equals(leftObject) || "Refrigerator".equals(leftObject)) {
+                                    cabinet.setName(cabinet.getName() + "L");
+                                } else {
+                                    cabinet.setName(cabinet.getName() + "R");
+                                }
+                            } else {
+                                cabinet.setName(cabinet.getName() + "R");
+                            }	            			
 	            		} else {
-	            			cabinet.setName(cabinet.getName() + "L");
+                            if (StringUtils.hasText(cabinet.getRightobject())) {
+                                String rightObject = cabinet.getRightobject();
+                                if ("Range".equals(rightObject) || "appliance".equals(rightObject) || "Refrigerator".equals(rightObject)) {
+                                    cabinet.setName(cabinet.getName() + "R");
+                                } else {
+                                    cabinet.setName(cabinet.getName() + "L");
+                                }                              
+                            } else {
+                               cabinet.setName(cabinet.getName() + "L");
+                            }
 	            		}
             		}	            		
             	}
@@ -4525,7 +4545,7 @@ public class CanvasObjectGenerator {
                 .map(list -> list.stream()
                 		.filter(Objects::nonNull)  // 添加这行来过滤掉 null 值
                         .flatMap(cabinet -> {
-                        	
+                        	if (cabinet.getWidth() == 0) return Stream.of(cabinet);
                             if (Objects.equals(cabinet.getWallid(), maxStartPositionCabinet.getWallid()) && 
                             		Objects.equals(cabinet.getStartposition(), maxStartPositionCabinet.getStartposition()) && 
                             		Objects.equals(cabinet.getType(), maxStartPositionCabinet.getType())||
@@ -5499,7 +5519,37 @@ public class CanvasObjectGenerator {
                                 	    )
                                 	    .max(Comparator.comparingDouble(CabinetProduct::getHeight))
                                 	    .orElse(null);
-                                
+                                float padCabinetWidth = 0f;
+                                String cabinetAdjustW = "";
+                                String cabinetAdjustNameW = "";     
+                                float padCabinetPos1 = 0f;   
+                                float padCabinetPos2 = 0f; 
+                                if ("BC1".equals(constr)) { // 1000series
+                                    padCabinetWidth=  Constants.commons.CANBINET_WIDTH_SP;
+                                    cabinetAdjustW  = Constants.commons.CANBINET_TYPE_SP;   
+                                    cabinetAdjustNameW  = Constants.commons.CANBINET_NAME_SP1239;
+                                    padCabinetPos1 = appliancePosition;
+                                    padCabinetPos2 = appliancePosition + applianceWidth;
+                                    
+                                } else {
+                                    padCabinetWidth =  Constants.commons.CANBINET_WIDTH_PNB;
+                                    cabinetAdjustW  = Constants.commons.CANBINET_TYPE_PNW;
+                                    cabinetAdjustNameW  = Constants.commons.CANBINET_NAME_PNW48;
+                                    padCabinetPos1 = appliancePosition - padCabinetWidth;
+                                    padCabinetPos2 = appliancePosition + applianceWidth;
+                                    appliancePositionPNB = appliancePosition - padCabinetWidth; 
+                                    
+                                }
+
+                                Cabinet panelHood1 = new Cabinet(highCabinetHeight,0f,cabinetAdjustNameW,
+                                        padCabinetWidth, kitchenInfo.getCeilingHeight(),kitchenInfo.getId(), wall.getId(),cabinetAdjustW,
+                                        Constants.commons.CANBINET_TYPE_UPPER, padCabinetPos1, Constants.commons.UPPER_CABINET_DEFAULT_DEPTH, wall.getAngle(),leftRef,"appliance");
+                                cabinetobjectList.add(panelHood1);
+                                Cabinet panelHood2 = new Cabinet(highCabinetHeight,0f,cabinetAdjustNameW,
+                                        padCabinetWidth, kitchenInfo.getCeilingHeight(),kitchenInfo.getId(), wall.getId(),cabinetAdjustW,
+                                        Constants.commons.CANBINET_TYPE_UPPER, padCabinetPos2, Constants.commons.UPPER_CABINET_DEFAULT_DEPTH, wall.getAngle(),"appliance","");
+                                cabinetobjectList.add(panelHood2);
+
                                 if (highestCabinet != null) {
                                 	hoodCabinetHeight = highestCabinet.getHeight();
                                     Cabinet cabinetHood = new Cabinet(hoodCabinetHeight,0f,highestCabinet.getName(),
@@ -5519,6 +5569,7 @@ public class CanvasObjectGenerator {
 //                                    leftObject = "";
                                     
                                 }
+                                applianceWidth = applianceWidth + padCabinetWidth;
 //                                Cabinet cabinetHoodA = new Cabinet(21f,0f,cabinetproducts.get(0).getName(),
 //                                        cabinetproducts.get(0).getWidth(), 0,kitchenInfo.getId(), wall.getId(),Constants.commons.OBJECT_TYPE_APPLIANCE,
 //                                        Constants.commons.CANBINET_TYPE_UPPER, appliancePosition, 0);
@@ -5572,7 +5623,7 @@ public class CanvasObjectGenerator {
                                 initPosition =  window.getStartposition() + window.getWidth() ;
                             }
                             float startP = initPosition;
-                            float spaceWidth =  appliancePosition-initPosition;
+                            float spaceWidth =  appliancePositionPNB-initPosition;
                             if ("window".equals(leftObject) || "door".equals(leftObject)) {
                                 startP = initPosition+Constants.commons.POSITION_WINDOWS_GAP;
                                 spaceWidth = spaceWidth-Constants.commons.POSITION_WINDOWS_GAP;
@@ -5606,7 +5657,7 @@ public class CanvasObjectGenerator {
                         }
                     }
                     if (!hasIntersection) {
-                    	initPosition = appliancePositionPNB + applianceWidth;
+                    	initPosition = appliancePosition + applianceWidth;
                         leftObject = "appliance";
                     }                    
                 }
@@ -5874,9 +5925,27 @@ public class CanvasObjectGenerator {
             		
             		if (wallWidth > 0 ) {
             			if (cabinet.getStartposition() < wallWidth/2) {
-	            			cabinet.setName(cabinet.getName() + "R");
+                           if (StringUtils.hasText(cabinet.getLeftobject())) {
+                                String leftObject = cabinet.getLeftobject();
+                                if ("Range".equals(leftObject) || "appliance".equals(leftObject) || "Refrigerator".equals(leftObject)) {
+                                    cabinet.setName(cabinet.getName() + "L");
+                                } else {
+                                    cabinet.setName(cabinet.getName() + "R");
+                                }
+                            } else {
+                                cabinet.setName(cabinet.getName() + "R");
+                            }	            			
 	            		} else {
-	            			cabinet.setName(cabinet.getName() + "L");
+                            if (StringUtils.hasText(cabinet.getRightobject())) {
+                                String rightObject = cabinet.getRightobject();
+                                if ("Range".equals(rightObject) || "appliance".equals(rightObject) || "Refrigerator".equals(rightObject)) {
+                                    cabinet.setName(cabinet.getName() + "R");
+                                } else {
+                                    cabinet.setName(cabinet.getName() + "L");
+                                }                              
+                            } else {
+                               cabinet.setName(cabinet.getName() + "L");
+                            }
 	            		}
             		}	            		
             	}
@@ -6660,7 +6729,13 @@ public class CanvasObjectGenerator {
         }
         return cabinetList;
     }
+
     // 为了尽量对齐上下柜子
+    @FunctionalInterface
+    public interface TriConsumer<T, U, V> {
+        void accept(T t, U u, V v);
+    }
+
     public static class CabinetRange {
         float start;
         float width;
@@ -6698,18 +6773,24 @@ public class CanvasObjectGenerator {
         private String name;
         private float startPosition;
         private float width;
+        private String cabinetType;
 
-        public CabinetCaculate(String name, float startPosition, float width) {
+        public CabinetCaculate(String name, float startPosition, float width, String cabinetType) {
             this.name = name;
             this.startPosition = startPosition;
             this.width = width;
+            this.cabinetType = cabinetType;
         }
 
         public String getName() { return name; }
         public float getStartPosition() { return startPosition; }
         public float getWidth() { return width; }
+        public String getCabinetType() { return cabinetType; }
         public void setName(String name) {
         	this.name = name;
+        }
+        public void setCabinetType(String cabinetType) {
+        	this.cabinetType = cabinetType;
         }
 
         @Override
@@ -6737,7 +6818,7 @@ public class CanvasObjectGenerator {
         List<CabinetCaculate> upperCabinets = new ArrayList<>();
 
         // helper: 填充一个区段
-        BiConsumer<Float, Float> tryFillSegment = (segStart, segWidth) -> {
+        TriConsumer<Float, Float, String> tryFillSegment = (segStart, segWidth, cabinetType) -> {
             float pos = segStart;
             float remain = segWidth;
 
@@ -6750,7 +6831,7 @@ public class CanvasObjectGenerator {
                 for (CandidateCabinet cand : sorted) {
                     float w = cand.getWidth();
                     if (w <= remain + 1e-6f) {
-                        upperCabinets.add(new CabinetCaculate(cand.getName(), pos, w));
+                        upperCabinets.add(new CabinetCaculate(cand.getName(), pos, w, cabinetType));
                         System.out.println("放置上柜: " + cand + " at " + pos);
                         pos += w;
                         remain -= w;
@@ -6763,7 +6844,7 @@ public class CanvasObjectGenerator {
 
             if (remain > 1e-6f) {
 //                remainingRanges.add(new CabinetRange(pos, remain));
-            	upperCabinets.add(new CabinetCaculate("tbd", pos, remain));
+            	upperCabinets.add(new CabinetCaculate("tbd", pos, remain, cabinetType));
                 System.out.println("剩余区段: start=" + pos + " width=" + remain);
             }
         };
@@ -6795,7 +6876,7 @@ public class CanvasObjectGenerator {
                     if (currentPos < lowerStart) {
                         float gap = Math.min(rangeEnd, lowerStart) - currentPos;
                         if (gap > 1e-6f) {
-                            tryFillSegment.accept(currentPos, gap);
+                            tryFillSegment.accept(currentPos, gap, lower.getCabinetType());
                             currentPos += gap;
                         }
                     }
@@ -6804,7 +6885,7 @@ public class CanvasObjectGenerator {
                     float overlapEnd = Math.min(rangeEnd, lowerEnd);
                     if (overlapEnd > overlapStart) {
                         float width = overlapEnd - overlapStart;
-                        tryFillSegment.accept(overlapStart, width);
+                        tryFillSegment.accept(overlapStart, width, lower.getCabinetType());
                         currentPos = overlapEnd;
                     }
                 }
@@ -6812,7 +6893,9 @@ public class CanvasObjectGenerator {
 
             // 如果尾部还有剩余
             if (currentPos < rangeEnd) {
-                tryFillSegment.accept(currentPos, rangeEnd - currentPos);
+                // 使用最后一个 lower 的 cabinetType，如果没有 lower 则使用 null
+                String cabinetType = intersectLower.isEmpty() ? null : intersectLower.get(intersectLower.size() - 1).getCabinetType();
+                tryFillSegment.accept(currentPos, rangeEnd - currentPos, cabinetType);
             }
         }
 
@@ -6831,7 +6914,7 @@ public class CanvasObjectGenerator {
 	
 	 // 创建合并对象
 	 private CabinetCaculate createMerged(String name, float startPosition, float totalWidth) {
-		    return new CabinetCaculate(name, startPosition, totalWidth);
+		    return new CabinetCaculate(name, startPosition, totalWidth, null);
 	}
     // ============ 主方法 ============
     public List<CabinetCaculate> adjustArrange(
@@ -6909,44 +6992,41 @@ public class CanvasObjectGenerator {
 //                float start = current.getStartPosition();
                 float totalWidth = current.getWidth();
                 int j = i + 1;
-                int k = 0;  // 用来判断是否第一次
+                boolean isFirst = true;  // 标记是否第一次循环
 
                 while (j < resultArrange.size()) {
-                    CabinetCaculate next = resultArrange.get(j);                   
-                    // 第二次以后必须检查 tbd
-                    if (k > 0 && !"tbd".equals(next.getName())) {
+                    CabinetCaculate next = resultArrange.get(j);
+                    // 第二次以后必须检查是否为 tbd
+                    if (!isFirst && !"tbd".equals(next.getName())) {
                         break;
                     }
                     totalWidth += next.getWidth();
                     j++;
-                    if (!"tbd".equals(right.getName())) {
-                    	k++;
-                    } else if (!"tbd".equals(next.getName())) {
-                    	k++;
+                    isFirst = false;  // 第一次之后设为 false
+                }
+
+                // ---------- 如果 right 不是 null 且有匹配，检查是否合并 ----------
+                if (right != null) {
+                    Optional<Cabinetsrule> match = findClosestSmallerRule(totalWidth, cabinetsruleList);
+                    if (match.isPresent()) {
+                        float ruleWidth = match.get().getCabinetWidth();
+                        // 匹配结果不允许等于右
+                        if (Math.round(ruleWidth) == Math.round(right.getWidth())) {
+                            adjusted.add(current);
+                            i++;
+                            continue;
+                        } else {
+                            float start = current.getStartPosition();
+                            CabinetCaculate mergedObj = createMerged("tbd", start, totalWidth);
+                            adjusted.add(mergedObj);
+                            i = j;  // 跳过包含 j 对象
+                            continue;
+                        }
                     }
                 }
 
-                // ---------- 如果 tbd block 长度 > 1，就合并 ----------
-                Optional<Cabinetsrule> match = findClosestSmallerRule(totalWidth, cabinetsruleList);
-	              if (match.isPresent()) {
-	              	float ruleWidth = match.get().getCabinetWidth();
-	              	 // ------ 新增：匹配结果不允许等于 左 或 右 ------
-	                  if (Math.round(ruleWidth) == Math.round(right.getWidth())) {
-	                  	 adjusted.add(current);
-	                       i++;
-	                      continue;
-	                  } else {
-	                  	float start = current.getStartPosition();
-//	                  	float totalWidth = current.getWidth() + right.getWidth();
-	                  	CabinetCaculate mergedObj = createMerged("tbd", start, totalWidth);
-	                      adjusted.add(mergedObj);
-	                      i += 2; // 跳过 current 和 right
-	                      merged = true;
-	                  }
-	              }
-//                adjusted.add(createMerged("tbd", start, totalWidth));
-
-                i = j;  // 跳过整段 tbd block
+                // 如果 right == null 或者没有匹配，跳过整段 tbd block
+                i = j;
                 continue;
             }
 
@@ -6963,13 +7043,15 @@ public class CanvasObjectGenerator {
         private float width;
         private String leftObject;
         private String rightObject;
+        private String cabinetType;
 
-        public CabinetRangeCheck(float start, float width, String leftObject, String rightObject) {
+        public CabinetRangeCheck(float start, float width, String leftObject, String rightObject, String cabinetType) {
             this.start = start;
             this.width = width;
             this.leftObject = leftObject;
             this.rightObject = rightObject;
-        }        
+            this.cabinetType = cabinetType;
+        }
         // getter / setter
         public float getStart() {
             return start;
@@ -6985,6 +7067,14 @@ public class CanvasObjectGenerator {
 
         public String getRightObject() {
             return rightObject;
+        }
+
+        public String getCabinetType() {
+            return cabinetType;
+        }
+
+        public void setCabinetType(String cabinetType) {
+            this.cabinetType = cabinetType;
         }
     }
     
@@ -7052,6 +7142,7 @@ public class CanvasObjectGenerator {
                 float end = start + c.getWidth();
                 String leftObjectC = c.getLeftobject();
                 String rightObjectC = c.getRightobject();
+                String cabinetTypeC = c.getCabinettype();
 
                 String left = c.getLeftobject(); // door/endwall/wall
 
@@ -7067,7 +7158,7 @@ public class CanvasObjectGenerator {
                 if (isBoundary || !isContinuous) {
 
                     // 结束前一个区间
-                	rangesCheck.add(new CabinetRangeCheck(rangeStart, rangeEnd - rangeStart, rangeleftObject, rangerightObject));
+                	rangesCheck.add(new CabinetRangeCheck(rangeStart, rangeEnd - rangeStart, rangeleftObject, rangerightObject, null));
 
                     // 开始新区间
                     rangeStart = start;
@@ -7084,7 +7175,7 @@ public class CanvasObjectGenerator {
             }
             String rangerightObjectOriginal = sortedCabinetsOriginal.get(sortedCabinetsOriginal.size() - 1).getRightobject();
             // 收尾
-            rangesCheck.add(new CabinetRangeCheck(rangeStart, rangeEnd - rangeStart,  rangeleftObject, rangerightObjectOriginal));
+            rangesCheck.add(new CabinetRangeCheck(rangeStart, rangeEnd - rangeStart,  rangeleftObject, rangerightObjectOriginal, null));
         }      
         
 
@@ -7271,6 +7362,7 @@ public class CanvasObjectGenerator {
             }
 
             float widthTemp = c.getWidth();
+            String cabType = c.getCabinettype();
 
             // CornerKey 不为空时，检查前后邻居
             if (c.getCornerKey() != null && !c.getCornerKey().isEmpty()) {
@@ -7298,7 +7390,8 @@ public class CanvasObjectGenerator {
             caculateList.add(new CabinetCaculate(
                     c.getName(),
                     c.getStartposition(),
-                    widthTemp
+                    widthTemp,
+                    cabType
             ));
         }
    	
@@ -7330,6 +7423,11 @@ public class CanvasObjectGenerator {
         CabinetRange upperRanges = new CabinetRange(startAdjust, width);
         List<CabinetRange> upperRangesList = new ArrayList() ;
         upperRangesList.add(upperRanges);
+        String constructionT = constr;
+         if (!"BC1".equals(constr)) {
+         	constructionT = "BC2";
+         }
+        String constructionFinal = constructionT;
         List<Cabinetsrule> rulesFilter = cabinetsruleList.stream()
         .filter(rule -> rule.getConstruction() != null 
                      && construction != null
@@ -7337,7 +7435,7 @@ public class CanvasObjectGenerator {
                      && construction.length() >= 3
                      && Math.round(cabinet.getHeight()) == Math.round(rule.getHeightCab1())
 
-                     && construction.substring(0, 3)
+                     && constructionFinal
                             .equals(rule.getConstruction().substring(0, 3)))
         .collect(Collectors.toList());
         List<CandidateCabinet> candidateUpper = rulesFilter.stream()
@@ -7354,17 +7452,25 @@ public class CanvasObjectGenerator {
         // result  
        
         
-        int skipLeftObjT = 0; // 
+        int skipLeftObjT = 0;
         int skipRightObjT = 0;
         int resSize = resultArrange.size();
-    	if (("door".equals(cabinet.getLeftobject()) || "window".equals(cabinet.getLeftobject())) && 
-    			"tbd".equals(resultArrange.get(0).getName()) && resultArrange.get(0).getWidth() <9) {
-    		skipLeftObjT = 1;
-		}
-    	if (("door".equals(cabinet.getRightobject()) || "window".equals(cabinet.getRightobject())) && 
-    			"tbd".equals(resultArrange.get(resSize -1).getName()) && resultArrange.get(resSize -1).getWidth() <9) {
-    		skipRightObjT = 1; 
-		}
+
+        // 检查左侧：door/window + 第一个是 tbd 且宽度 <9
+        if (resSize > 0 &&
+            ("door".equals(cabinet.getLeftobject()) || "window".equals(cabinet.getLeftobject())) &&
+            "tbd".equals(resultArrange.get(0).getName()) &&
+            resultArrange.get(0).getWidth() < 9) {
+            skipLeftObjT = 1;
+        }
+
+        // 检查右侧：door/window + 最后一个是 tbd 且宽度 <9
+        if (resSize > 0 &&
+            ("door".equals(cabinet.getRightobject()) || "window".equals(cabinet.getRightobject())) &&
+            "tbd".equals(resultArrange.get(resSize - 1).getName()) &&
+            resultArrange.get(resSize - 1).getWidth() < 9) {
+            skipRightObjT = 1;
+        }
         
         for (int i = 0; i < resultArrange.size(); i++) {
         	// 
@@ -7431,7 +7537,8 @@ public class CanvasObjectGenerator {
         	}  
         	if ("endwall".equals(leftObjectArrange) && i == 0 && 
         			(Constants.commons.CANBINET_WIDTH_SP != 0f && "BC1".equals(constr) || !"BC1".equals(constr))) {
-         	
+                
+                
         		if (res.getWidth() < padCabinetWidth) {
 	   				 // 放置pnb/SP
 	           		Cabinet cabinet1 = new Cabinet(cabinet.getHeight(), 0f, cabinetAdjustNameW,
@@ -7446,24 +7553,28 @@ public class CanvasObjectGenerator {
             		cabinetListR.add(cabinet1); 
     			} else if (res.getWidth() <= cabnetMinWidth && res.getWidth() > padCabinetWidth  ) {
     				
-    				/// todom1116
-    				Cabinet cabinet1 = new Cabinet(cabinet.getHeight(), 0f, cabinetAdjustNameW,
+    				if (!"endwall".equals(rightObjectArrange) && !"window".equals(rightObjectArrange) &&  !"door".equals(rightObjectArrange) ) {
+                        Cabinet cabinet1 = new Cabinet(cabinet.getHeight(), 0f, cabinetAdjustNameW,
             				padCabinetWidth, 0, kitchenId, wallId, cabinetAdjustW,
                             type, res.getStartPosition() +res.getWidth() - padCabinetWidth , cabinet.getDepth(), rotation, "endwall","");
-    				cabinetListR.add(cabinet1); 
+    				    cabinetListR.add(cabinet1); 
+                    }    				
     			} else {
-    				// 
-    				float adjWidth = res.getWidth() - Constants.commons.ADJUST_WIDTH_PAD_MIN;
-        			float adjStart = res.getStartPosition() + Constants.commons.ADJUST_WIDTH_PAD_MIN;
-    				Cabinet cabinet1 = new Cabinet(cabinet.getHeight(), 0f, cabinetAdjustNameW,
-            				padCabinetWidth, 0, kitchenId, wallId, cabinetAdjustW,
-                            type, res.getStartPosition() + Constants.commons.ADJUST_WIDTH_PAD_MIN - padCabinetWidth, cabinet.getDepth(), rotation, "endwall","");
-    				cabinetListR.add(cabinet1); 
-    				List<Cabinet> listC = getCabinetFromRule("upper", adjWidth, cabinet.getHeight(), cabinetsruleList, kitchenId,  
-    						wallId,  adjStart, type, "", rightObjectArrange, rotation, cabinet.getDepth(), cabnetMinWidth);
-            		if (listC!=null ) {
-            			cabinetListR.addAll(listC);   
-            		}
+    				if (("endwall".equals(rightObjectArrange) || "window".equals(rightObjectArrange) ||  "door".equals(rightObjectArrange) )&&
+                        cabinet.getWidth() > cabnetMinWidth + padCabinetWidth + Constants.commons.ADJUST_WIDTH_PAD_MIN ) {
+                        float adjWidth = res.getWidth() - Constants.commons.ADJUST_WIDTH_PAD_MIN;
+                        float adjStart = res.getStartPosition() + Constants.commons.ADJUST_WIDTH_PAD_MIN;
+                        Cabinet cabinet1 = new Cabinet(cabinet.getHeight(), 0f, cabinetAdjustNameW,
+                                padCabinetWidth, 0, kitchenId, wallId, cabinetAdjustW,
+                                type, res.getStartPosition() + Constants.commons.ADJUST_WIDTH_PAD_MIN - padCabinetWidth, cabinet.getDepth(), rotation, "endwall","");
+                        cabinetListR.add(cabinet1); 
+                        List<Cabinet> listC = getCabinetFromRule("upper", adjWidth, cabinet.getHeight(), cabinetsruleList, kitchenId,  
+                                wallId,  adjStart, type, "", rightObjectArrange, rotation, cabinet.getDepth(), cabnetMinWidth);
+                        if (listC!=null ) {
+                            cabinetListR.addAll(listC);   
+                        }
+                    }
+    				
     			}    			
     		} else if ("endwall".equals(rightObjectArrange) && resultArrange.size()-1 == i && 
         			(Constants.commons.CANBINET_WIDTH_SP != 0f && "BC1".equals(constr) || !"BC1".equals(constr))) {
@@ -7521,9 +7632,23 @@ public class CanvasObjectGenerator {
     	            		cabinetListR.addAll(listC);
     	            	} else {
     	        			String cType = res.getName().split("\\d", 2)[0];
-    	            		Cabinet cabT = new Cabinet(cabinet.getHeight(), 0f, res.getName(), res.getWidth(), cabinet.getCeilingHeight(), kitchenId, wallId,
+    	        			float height = cabinet.getHeight();
+                            String constrT = construction.substring(0, 3);
+                            String nameC = res.getName();
+    	        			if ("SB".equals(res.getCabinetType())) {
+                                if ("BC1".equals(constrT)) {
+                                    height = 30f;
+                                } else {
+                                    height = 33f;
+                                }
+        						// 替换后两位为height
+                                if (nameC.length() >= 2) {
+                                    nameC = nameC.substring(0, nameC.length() - 2) + (int)height;
+                                }
+        					}
+    	            		Cabinet cabT = new Cabinet(height, 0f, nameC, res.getWidth(), cabinet.getCeilingHeight(), kitchenId, wallId,
     	            				cType, "upper", res.getStartPosition(), cabinet.getDepth() ,rotation, leftObjectArrange, rightObjectArrange);
-    	            		cabinetListR.add(cabT);        		
+    	            		cabinetListR.add(cabT);
     	            	} 
     				}
     				
@@ -7540,15 +7665,30 @@ public class CanvasObjectGenerator {
             		}
             		cabinetListR.addAll(listC);
             	} else {
+                    // 如果res.getCabinetType()等于SB，就调整height为33/30
         			String cType = res.getName().split("\\d", 2)[0];
-            		Cabinet cabT = new Cabinet(cabinet.getHeight(), 0f, res.getName(), res.getWidth(), cabinet.getCeilingHeight(), kitchenId, wallId,
+        			float height = cabinet.getHeight();
+                    String constrT = construction.substring(0, 3);
+                    String nameC = res.getName();
+        			if ("SB".equals(res.getCabinetType())) {
+                        if ("BC1".equals(constrT)) {
+                            height = 30f;
+                        } else {
+                            height = 33f;
+                        }
+                        // 替换后两位为height
+                        if (nameC.length() >= 2) {
+                            nameC = nameC.substring(0, nameC.length() - 2) + (int)height;
+                        }
+                    }
+            		Cabinet cabT = new Cabinet(height, 0f, nameC, res.getWidth(), cabinet.getCeilingHeight(), kitchenId, wallId,
             				cType, "upper", res.getStartPosition(), cabinet.getDepth() ,rotation, leftObjectArrange, rightObjectArrange);
-            		cabinetListR.add(cabT);        		
+            		cabinetListR.add(cabT);
             	} 
     		}
         }
         
-        if (cabinetListR==null) {
+        if (cabinetListR==null || cabinetListR.size() == 0) {
         	return null;
         }
         int reGetCabFlag = 0;
@@ -8640,13 +8780,19 @@ public class CanvasObjectGenerator {
             caculateList.add(new CabinetCaculate(
                     c.getName(),
                     c.getStartposition(),
-                    widthTemp
+                    widthTemp,
+                    null
             ));
         }
         		
         CabinetRange islandRanges = new CabinetRange(startAdjust, width);
         List<CabinetRange> rangesList = new ArrayList() ;
         rangesList.add(islandRanges);
+        String constructionT = construction.substring(0, 3);
+         if (!"BC1".equals(construction.substring(0, 3))) {
+         	constructionT = "BC2";
+         }
+        String constructionFinal = constructionT;
         List<Cabinetsrule> rulesFilter = cabinetsruleList.stream()
         	    .filter(rule -> 
         	        rule.getConstruction() != null 
@@ -8655,7 +8801,7 @@ public class CanvasObjectGenerator {
         	        && construction.length() >= 3
         	        && (rule.getHeightCab1() == null || 
         	            Math.round(cabinet.getHeight()) == Math.round(rule.getHeightCab1()))
-        	        && construction.substring(0, 3).equals(rule.getConstruction().substring(0, 3))
+        	        && constructionFinal.equals(rule.getConstruction().substring(0, 3))
         	        && Math.round(cabinet.getDepth()) == Math.round(rule.getDepthCab())
         	    )
         	    .collect(Collectors.toList());
