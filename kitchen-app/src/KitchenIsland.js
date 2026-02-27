@@ -250,7 +250,7 @@ const KitchenIsland = memo(({ control, shapeType, islandObject, setIslandObject,
                     label={
                       <Box>
                         <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
-                          Add Seating Overhang
+                          Includes Seating Overhang
                         </Typography>
                         {/* 可选：添加小字提示 */}
                         {value && (
