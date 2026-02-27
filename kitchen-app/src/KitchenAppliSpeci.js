@@ -196,7 +196,7 @@ const KitchenAppliSpeci = ({ control, shapeType, getValues, setValue, disabled =
                 render={({ field, fieldState: { error } }) => (
                   <TextField
                     {...field}
-                    label="From Right (Inches)"
+                    label="From Right (Elevation. Inches)"
                     size="small"
                     fullWidth
                     variant="outlined"

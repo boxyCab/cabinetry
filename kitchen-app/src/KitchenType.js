@@ -425,7 +425,7 @@ const KitchenType = ({ control, wallObjects, setByShapeType, errors, getValues, 
                                   control={control}
                                   render={({ field, fieldState: { error } }) => (
                                     <TextField
-                                      {...field} label="From Right (Inches)" size="small" fullWidth error={!!error}
+                                      {...field} label="From Right (Elev. in)" size="small" fullWidth error={!!error}
                                       InputProps={{
                                         endAdornment: error && (
                                           <InputAdornment position="end"><Tooltip title={error.message} arrow placement="top"><ErrorIcon color="error" fontSize="small" /></Tooltip></InputAdornment>
@@ -501,7 +501,7 @@ const KitchenType = ({ control, wallObjects, setByShapeType, errors, getValues, 
                                   control={control}
                                   render={({ field, fieldState: { error } }) => (
                                     <TextField
-                                      {...field} label="From Right (Inches)" size="small" fullWidth error={!!error}
+                                      {...field} label="From Right (Elev. in)" size="small" fullWidth error={!!error}
                                       InputProps={{
                                         endAdornment: error && (
                                           <InputAdornment position="end"><Tooltip title={error.message} arrow placement="top"><ErrorIcon color="error" fontSize="small" /></Tooltip></InputAdornment>

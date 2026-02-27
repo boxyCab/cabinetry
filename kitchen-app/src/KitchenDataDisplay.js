@@ -183,7 +183,7 @@ const KitchenDataDisplay = ({
                       app.location === 'three' ? 'Wall Three' :
                         app.location === 'four' ? 'Wall Four' :
                           app.location
-                }</strong>, {app.position} Inches from right)
+                }</strong>, {app.position} Inches from Right (Elevation))
               </Typography>
             ))}
           </Box>
