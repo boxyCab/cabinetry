@@ -3697,9 +3697,9 @@ public class CanvasObjectGenerator {
 	    return cabinetNewList;
 	}
 	
-    public ArrayList<List<Cabinet>> adjustCabinetBFWF(ArrayList<List<Cabinet>> multipleCabinetList, String typeFlg ,Kitchen kitchenInfo, 
+    public ArrayList<List<Cabinet>> adjustCabinetBFWF(ArrayList<List<Cabinet>> multipleCabinetList, String typeFlg ,Kitchen kitchenInfo,
     		List<Wall> wallInfoList , Island island, List<Cabinetsrule> filteredCabinetsRule, String finalConstruction) {
-        
+
     	ArrayList<List<Cabinet>> multipleCabinetListRet = new ArrayList();
     	String cabinetAdjust ;
     	String cabinetAdjustW ;
@@ -3707,9 +3707,17 @@ public class CanvasObjectGenerator {
     	String cabinetAdjustNameW ;
     	float padCabinetWidth = 0f;
     	String constr ;
+
+    	// 如果对应的 construction 为 null 或空字符串，不需要处理，直接返回原始列表
     	if ("lower".equals(typeFlg )) {
+    		if (kitchenInfo.getConstruction2() == null || kitchenInfo.getConstruction2().isEmpty()) {
+    			return multipleCabinetList;
+    		}
     		 constr = kitchenInfo.getConstruction2().substring(0, 3);
     	} else {
+    		if (kitchenInfo.getConstruction1() == null || kitchenInfo.getConstruction1().isEmpty()) {
+    			return multipleCabinetList;
+    		}
     		constr = kitchenInfo.getConstruction1().substring(0, 3);
     	}
     		
@@ -5307,6 +5315,11 @@ public class CanvasObjectGenerator {
             logger.info("designCabinetUpper kitchenInfo:" + kitchenInfo.getId());
         ArrayList<List<Cabinet>> multipleCabinetList = new ArrayList<>();
         if (kitchenInfo == null || wallInfoList == null) {return null;}
+
+        // 如果 construction1 为 null 或空字符串，不需要处理
+        if (kitchenInfo.getConstruction1() == null || kitchenInfo.getConstruction1().isEmpty()) {
+            return multipleCabinetList;
+        }
 //        List<Cabinet> highCabinet = cabinetRepository.findAllByType("high");
             
         float highCabinetHeight = 0;
