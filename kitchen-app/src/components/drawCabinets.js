@@ -780,7 +780,7 @@ export const drawEvelationCabinet = (canvas, cabInfo, id) => {
     } else if (cabInfo.cabinettype === 'BLS') {
         drawBLS(canvas, cabInfo);
     } else if (cabInfo.cabinettype === 'BSR') {
-        drawUpperCabNodrawerSingle(canvas, cabInfo);
+        drawCabBSR(canvas, cabInfo);
     } else if (cabInfo.cabinettype === 'B') {
         if (cabInfo.width / cabInfo.scale > 21) { // 
             // 双门
@@ -1036,6 +1036,85 @@ const drawUpperCabNodrawer = (canvas, cabInfo) => {
     //canvas.add(group);
     return null;
 }
+const drawCabBSR = (canvas, cabInfo) => {
+    const cabinetRect = new fabric.Rect({
+        left: Math.round(cabInfo.x * 100) / 100,
+        top: Math.round(cabInfo.y * 100) / 100,
+        fill: cabInfo.fill || '#FFFBF0',
+        width: Math.round(cabInfo.width * 100) / 100 || 100,
+        height: Math.round(cabInfo.height * 100) / 100 || 20,
+        angle: 0,
+        stroke: 'black', // 边框颜色
+        strokeWidth: 0.5, // 边框宽度
+        selectable: false  // 确保矩形不可选择
+    });
+    cabinetRect.objectname = cabInfo.objectname;
+    cabinetRect.widthcabinet = cabInfo.widthcabinet;
+    // 添加大矩形到画布
+    canvas.add(cabinetRect);
+    // 获取大矩形的中心点和宽高
+    const { left, width } = cabinetRect;
+    const outtop = cabinetRect.top;
+    const outheight = cabinetRect.height;
+
+    const toeWidth = 4.5 * cabInfo.scale;
+    const drawerToeLine = new fabric.Line(
+        [left, outtop + outheight - toeWidth, left + width, outtop + outheight - toeWidth],
+        {
+            stroke: 'gray',
+            strokeWidth: 1,
+            selectable: false
+        }
+    );
+    canvas.add(drawerToeLine);
+    const top = cabinetRect.top;
+    const height = cabinetRect.height - toeWidth;
+    // 获取大矩形的中心点和宽高
+    // const { left, top, width, height } = cabinetRect;
+    // 小矩形的内边距（距离边框 3 像素）
+    const padding = 5;
+    // 小矩形
+    const leftInnerRect = new fabric.Rect({
+        left: left + padding,
+        top: top + padding,
+        fill: 'transparent',
+        width: width - padding * 2,
+        height: height - padding * 2,
+        stroke: 'gray',
+        strokeWidth: 0.5,
+        selectable: false
+    });
+    leftInnerRect.objectname = cabInfo.objectname;
+    leftInnerRect.widthcabinet = cabInfo.widthcabinet;
+    canvas.add(leftInnerRect);
+    // 创建文本对象
+    // 计算矩形的中心位置
+    const centerX = cabinetRect.left + cabinetRect.width / 2;
+    const centerY = cabinetRect.top + cabinetRect.height / 2;
+    const text = new fabric.Text(cabInfo.objectname || 'Cabinet', {
+        left: centerX,        // 文本的中心位置
+        top: centerY,
+        fontSize: 18,         // 字体大小
+        originX: 'center',    // 设置原点为中心
+        originY: 'center',    // 设置原点为中心
+        fontFamily: 'Arial',  // 字体
+        fill: 'blue',         // 字体颜色
+        selectable: false,    // 文本不可选择
+        clipTo: function (ctx) {
+            // 限制文本绘制范围，不影响矩形位置
+            ctx.rect(
+                -cabinetRect.width / 2, // 相对于文本中心的左边界
+                -cabinetRect.height / 2, // 相对于文本中心的上边界
+                cabinetRect.width,       // 矩形宽度
+                cabinetRect.height       // 矩形高度
+            );
+        },
+    });
+    canvas.add(text);
+
+    return null;
+}
+
 const drawUpperCabNodrawerSingle = (canvas, cabInfo) => {
     const cabinetRect = new fabric.Rect({
         left: Math.round(cabInfo.x * 100) / 100,
