@@ -20,7 +20,6 @@ import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.boxy.cabinet_design.common.Constants;
-import com.boxy.cabinet_design.dto.KitchenObject;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -932,7 +931,9 @@ public class KitchenLayoutWallGenerator {
                         canvasObject.getDepth(),
                         canvasObject.getWallid(), 0,
                         canvasObject.getRelatedId2(),
-                        canvasObject.getWidthcabinet()
+                        canvasObject.getWidthcabinet() != null ? canvasObject.getWidthcabinet() : 0f,
+                        canvasObject.getHeightcabinet() != null ? canvasObject.getHeightcabinet() : 0f,
+                        canvasObject.getDepthcabinet() != null ? canvasObject.getDepthcabinet() : 0f
                 ))
                 .collect(Collectors.toList());
         return canvasObjectDTOs;
@@ -1003,7 +1004,9 @@ public class KitchenLayoutWallGenerator {
                         canvasObject.getDepth(),
                         canvasObject.getWallid(), 0,
                         canvasObject.getRelatedId2(),
-                        canvasObject.getWidthcabinet()
+                        canvasObject.getWidthcabinet() != null ? canvasObject.getWidthcabinet() : 0f,
+                        canvasObject.getHeightcabinet() != null ? canvasObject.getHeightcabinet() : 0f,
+                        canvasObject.getDepthcabinet() != null ? canvasObject.getDepthcabinet() : 0f
                 ))
                 .collect(Collectors.toList());
         return canvasObjectDTOs;
@@ -1058,7 +1061,7 @@ public class KitchenLayoutWallGenerator {
                         canvasObject.getScale(),
                         canvasObject.getCabinettype(),
                         canvasObject.getDepth(),
-                        0f,0f,canvasObject.getWidthcabinet()
+                        0f,0f,canvasObject.getWidthcabinet(),canvasObject.getHeightcabinet(),canvasObject.getDepthcabinet()
                 ))
                 .collect(Collectors.toList());
         return canvasObjects;
@@ -1936,6 +1939,8 @@ public class KitchenLayoutWallGenerator {
             existingEntity.setObjectname(dto.getObjectname());
             existingEntity.setWidth(dto.getWidth());
             existingEntity.setWidthcabinet(dto.getWidthcabinet());
+            existingEntity.setHeightcabinet(dto.getHeightcabinet());
+            existingEntity.setDepthcabinet(dto.getDepthcabinet());
             existingEntity.setX(dto.getX());
             existingEntity.setY(dto.getY());
 
@@ -1961,7 +1966,9 @@ public class KitchenLayoutWallGenerator {
 //            existingEntity.setCabinettype(dto.getCabinettype());
 //            existingEntity.setName(dto.getName());
             existingEntity.setStartposition(dto.getStartposition());
-            existingEntity.setWidth(dto.getWidth());
+            existingEntity.setWidth(dto.getWidth());            
+            existingEntity.setHeight(dto.getHeight());
+            existingEntity.setDepth(dto.getDepth());
 //            existingEntity.setRotation(dto.getRotation());
             // 获取当前服务器时区的时间
             existingEntity.setUpdatedAt(serverTime.toInstant());
@@ -1978,7 +1985,11 @@ public class KitchenLayoutWallGenerator {
             existingEntity.setX(dto.getX());
             existingEntity.setY(dto.getY());
             existingEntity.setWidth(dto.getWidth());
-            existingEntity.setWidthcabinet(dto.getWidthcabinet());
+            existingEntity.setHeight(dto.getHeight());
+            existingEntity.setDepth(dto.getDepth());
+            existingEntity.setWidthcabinet(dto.getWidthcabinet());            
+            existingEntity.setHeightcabinet(dto.getHeightcabinet());
+            existingEntity.setDepthcabinet(dto.getDepthcabinet());
             existingEntity.setUpdatedAt(serverTime.toInstant());
             // 保存更新后的实体
             canvasobjectRepository.save(existingEntity);

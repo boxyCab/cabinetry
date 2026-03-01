@@ -258,7 +258,6 @@ const DashboardSidebar = () => {
                 return;
             } else {
                 dispatch(updateKitchenId(saveResult.kitchenId));
-                dispatch(updateOthersReadOnly(true));
                 dispatch(updateOthersShowCanvas(true));
             }
 
@@ -312,6 +311,8 @@ const DashboardSidebar = () => {
                     dispatch(updateOthers(updateOthersObject));
 
                     showSnackbar("Design generated successfully!", "success");
+                    // 生成成功后禁用表单输入
+                    dispatch(updateOthersReadOnly(true));
                 }
             }
         } catch (error) {

@@ -84,15 +84,33 @@ public class CanvasObject {
     private String fill;
     private List path;
     private float widthcabinet;
+    private float heightcabinet;
+    private float depthcabinet;
     private List<CanvasObject> objects;
     // getters and setters
-    
+
     public float getWidthcabinet() {
         return widthcabinet;
     }
 
     public void setWidthcabinet(float widthcabinet) {
         this.widthcabinet = widthcabinet;
+    }
+
+    public float getHeightcabinet() {
+        return heightcabinet;
+    }
+
+    public void setHeightcabinet(float heightcabinet) {
+        this.heightcabinet = heightcabinet;
+    }
+
+    public float getDepthcabinet() {
+        return depthcabinet;
+    }
+
+    public void setDepthcabinet(float depthcabinet) {
+        this.depthcabinet = depthcabinet;
     }
     public String getType() {
         return type;

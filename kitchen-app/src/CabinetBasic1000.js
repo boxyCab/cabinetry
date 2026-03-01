@@ -45,8 +45,10 @@ const CabinetBasic1000 = () => {
         { id: '10', image: '/cabinets/wall/Base Blind Corner 39.png', boxname: 'Base Blind Corner 39″', comments: 'One full height door 14-1/2″ wide, 12″opening Hinges on the central stile Filler needs to be ordered separately One shelf', buttonlist1: ['BBC39',], buttonlist2: [] },
         { id: '11', image: '/cabinets/wall/Base Blind Corner 42.png', boxname: 'Base Blind Corner 42', comments: 'One full height door 17-1/2″ wide, 15″ opening Hinges on the central stile Filler needs to be ordered separately One shel', buttonlist1: ['BBC42',], buttonlist2: [] },
         { id: '12', image: '/cabinets/wall/Base Lazy Susan.png', boxname: 'Base Lazy Susan', comments: 'Full height bi-folding door Two wooden susan included Wooden susan 26-1/4″ diameter Soft close not available', buttonlist1: ['BLS33', 'BLS36',], buttonlist2: [] },
-
-      ]);
+        { id: '13', image: '/cabinets/base/Base Filler.png', boxname: 'Base Filler”', comments: 'Solid wood  ', buttonlist1: ['BF3', 'BF6',], buttonlist2: [] },
+        { id: '14', image: '/cabinets/base/Skin Panel 24.png', boxname: 'Skin Panel', comments: ' One side finished   1/4“ thickness', buttonlist1: ['SP2436', 'SP2796', 'SP4896'], buttonlist2: [] },
+        { id: '15', image: '/cabinets/base/Refrigerator Return Panel.png', boxname: 'Refrigerator Return Panel', comments: '1-1/2“ finished filler 1/2” thickness plywood panel, finished outside', buttonlist1: ['RRP2796', 'RRP27108'], buttonlist2: [] },
+        ]);
     } else {
       setData([
         { id: '1', image: '/cabinets/base/Base Single Door.png', boxname: 'Base Single Door', comments: 'One door One drawer One shelf\n *One full height door, no drawer', buttonlist1: ['B09*', 'B12', 'B15'], buttonlist2: ['B18', 'B21'] },
@@ -63,14 +65,18 @@ const CabinetBasic1000 = () => {
         { id: '12', image: '/cabinets/wall/Base Blind Corner 39.png', boxname: 'Base Blind Corner 39″', comments: 'One full height door 14-7/8″ wide, 14-1/4″opening Hinges on the central stile Filler needs to be ordered separately One shelf', buttonlist1: ['BBC39',], buttonlist2: [] },
         { id: '13', image: '/cabinets/wall/Base Blind Corner 42.png', boxname: 'Base Blind Corner 42', comments: ' One full height door 17-7/8″ wide, 17-1/4″ opening Hinges on the central stile Filler needs to be ordered separately One shel', buttonlist1: ['BBC42',], buttonlist2: [] },
         { id: '14', image: '/cabinets/wall/Base Lazy Susan.png', boxname: 'Base Lazy Susan', comments: 'Full height bi-folding door Two wooden susan included Wooden susan 26-1/4″ diameter Soft close not available', buttonlist1: ['BLS33', 'BLS36',], buttonlist2: [] },
-
+        { id: '15', image: '/cabinets/base/Base Open Cabinet.png', boxname: 'Base Open Cabinet', comments: 'One shelf', buttonlist1: ['BOC09', 'BOC12', 'BOC15'], buttonlist2: ['BOC18', 'BOC21', 'BOC24'], buttonlist3: ['BOC27', 'BOC30', 'BOC33'], buttonlist4: ['BOC36', 'BOC39', 'BOC42'] },
+        { id: '16', image: '/cabinets/base/Base Filler.png', boxname: 'Base Filler”', comments: 'Solid wood  ', buttonlist1: ['BF3', 'BF6',], buttonlist2: [] },
+        { id: '17', image: '/cabinets/base/Base Finish Panel.png', boxname: 'Base Finish Panel', comments: 'Finished on all sides   3/4“ thickness plywood', buttonlist1: ['PNB36','PNB96', 'PNB108'], buttonlist2: [] },
+        { id: '18', image: '/cabinets/base/Island Finish Panel.png', boxname: 'Island Finish Panel', comments: 'Finished on all sides   3/4“ thickness plywood', buttonlist1: ['PNI24','PNI36', 'PNI48'], buttonlist2: ['PNI96'] },
+        
       ]);
     }
 
   }, [cabActiveId]);
 
-  const cabAdd = (cabWidth, name, cabinettype, cabinetDepth) => {
-    const cabHeight = 34.5;
+  const cabAdd = (cabWidth, name, cabinettype, cabinetDepth, cabHeight) => {
+    // const cabHeight = 34.5;
     const cabDepth = cabinetDepth;
     const cabX = 100;
     const cabY = 100;
@@ -79,7 +85,7 @@ const CabinetBasic1000 = () => {
       "rotation": 0, "width": Math.round(cabWidth * cabinetS * 100) / 100,
       "depth": Math.round(cabDepth * cabinetS * 100) / 100, "height": Math.round(cabHeight * cabinetS * 100) / 100,
       "cabinettype": cabinettype, "color": '#FFFBF0', "x": cabX, "y": cabY,
-      "objectname": name, "scale": cabinetS, "widthcabinet": cabWidth, "updateFlg": 3, id: randomInt
+      "objectname": name, "scale": cabinetS, "widthcabinet": cabWidth, "heightcabinet": cabHeight,"depthcabinet": cabDepth,"updateFlg": 3, id: randomInt
     });
     // saveSubmitData(cabinetObject, kitchenId, "canvas1");
 
@@ -99,6 +105,7 @@ const CabinetBasic1000 = () => {
     let cabWidth = 0;
     let cabinettype = "";
     let cabinetDepth = 24;
+    let cabHeight = 34.5;
     if (cleanedStr.startsWith("BSR", 0)) {
       cabWidth = cleanedStr.slice(3);
       cabinettype = "BSR";
@@ -127,14 +134,39 @@ const CabinetBasic1000 = () => {
     } else if (cleanedStr.startsWith("SB", 0)) {
       cabWidth = cleanedStr.slice(2);
       cabinettype = "SB";
-    } else {
+    } else if (cleanedStr.startsWith("BOC", 0)) {
+      cabWidth = cleanedStr.slice(3);
+      cabinettype = "BOC";
+    } else if (cleanedStr.startsWith("BF", 0)) {
+      cabWidth = cleanedStr.slice(2,3);
+      cabinettype = "FILLER";
+    } else if (cleanedStr.startsWith("PNB", 0)) {
+      cabHeight = cleanedStr.slice(3);
+      cabWidth = 0.75;
+      cabinettype = "PNB";
+    } else if (cleanedStr.startsWith("PNI", 0)) {
+      cabHeight = cleanedStr.slice(3);
+      cabWidth = 0.75;
+      cabinettype = "PNI";
+    } else if (cleanedStr.startsWith("SP", 0)) {
+      cabinetDepth = cleanedStr.slice(2,4);
+      cabHeight = cleanedStr.slice(4);
+      cabWidth = 0.25;
+      cabinettype = "SP";
+    } else if (cleanedStr.startsWith("RRP", 0)) {
+      cabinetDepth = cleanedStr.slice(3,5);
+      cabHeight = cleanedStr.slice(5);
+      cabWidth = 1.5;
+      cabinettype = "RRP";
+    } 
+    else {
       cabWidth = cleanedStr.slice(1, 3);
       cabinettype = "B";
       if (cleanedStr.length === 5) {
         cabinetDepth = cleanedStr.slice(3, 5);
       }
     }
-    cabAdd(cabWidth, cleanedStr, cabinettype, cabinetDepth);
+    cabAdd(cabWidth, cleanedStr, cabinettype, cabinetDepth, cabHeight);
 
     // saveSubmitData(cabinetObject, kitchenId, "canvas1");
 
@@ -185,6 +217,13 @@ const CabinetBasic1000 = () => {
             {item.buttonlist3 != null ? (
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 {item.buttonlist3.map((buttonitem, index) => (
+                  <Button key={index} onClick={() => handleButtonClick(buttonitem)} disabled={!buttonActive}>{buttonitem}</Button>
+                ))}
+              </Box>
+            ) : null}
+            {item.buttonlist4 != null ? (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {item.buttonlist4.map((buttonitem, index) => (
                   <Button key={index} onClick={() => handleButtonClick(buttonitem)} disabled={!buttonActive}>{buttonitem}</Button>
                 ))}
               </Box>

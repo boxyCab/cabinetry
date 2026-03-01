@@ -51,7 +51,9 @@ const CabinetWallOthers1000 = () => {
         { id: '7', image: '/cabinets/wall/Single Oven Pantry 93.png', boxname: 'Single Oven Pantry 93″', comments: ' Opening 28-9/16″W x 31-1/2″H One shelf  One small drawer and two big drawers  Filler needs to be ordered separately ' , buttonlist1 :['SOP3093', 'SOP30105'],buttonlist2 :[]},
         { id: '8', image: '/cabinets/wall/Combo Oven Pantry 93 High.png', boxname: 'Single Oven Pantry 105″', comments: 'Opening 28-9/16″W x 43-5/16″ or 49-15/16″H One shelves One small drawer Two big drawers Filler needs to be ordered separately' , buttonlist1 :['COP3093','COP30105',],buttonlist2 :[]},
         { id: '9', image: '/cabinets/wall/Double Oven Pantry 93.png', boxname: 'Double Oven Pantry 93″', comments: ' Opening 28-9/16″ x 54-15/16″ One shelf  One small drawer Two big drawers Filler needs to be ordered separately ' , buttonlist1 :['DOP3093','DOP30105'],buttonlist2 :[]},
-        // { id: '10', image: '/cabinets/wall/Double Oven Pantry 105.png', boxname: 'Double Oven Pantry 105″', comments: 'Opening 28-1/2″ x 25-1/2″ Two shelves One small drawer Two big drawers Filler needs to be ordered separately Box is separated into TOP/BOTTOM two portions' , buttonlist1 :['SOP31105'],buttonlist2 :[]},
+        { id: '10', image: '/cabinets/wall/Pantry Open Cabinet 93.png', boxname: 'Pantry Open Cabinet 93″ Height', comments: 'Five shelves' , buttonlist1 :['POC1293','POC1593','POC1893'],buttonlist2 :['POC2193','POC2493','POC2793'],buttonlist3 :['POC3093','POC3393','POC3693'],buttonlist4 :['POC3993','POC4293']},
+        { id: '11', image: '/cabinets/wall/Pantry Open Cabinet 105.png', boxname: 'Pantry Open Cabinet 105″ Height', comments: 'Six shelves' , buttonlist1 :['POC12105','POC15105','POC18105'],buttonlist2 :['POC21105','POC24105','POC27105'],buttonlist3 :['POC30105','POC33105','POC36105'],buttonlist4 :['POC39105','POC42105']},
+        // { id: '12', image: '/cabinets/wall/Double Oven Pantry 105.png', boxname: 'Double Oven Pantry 105″', comments: 'Opening 28-1/2″ x 25-1/2″ Two shelves One small drawer Two big drawers Filler needs to be ordered separately Box is separated into TOP/BOTTOM two portions' , buttonlist1 :['SOP31105'],buttonlist2 :[]},
       ]);
     }
     
@@ -89,7 +91,11 @@ const CabinetWallOthers1000 = () => {
       cabWidth = cleanedStr.slice(2,4);
       cabHeight = cleanedStr.slice(4);
       cabinettype = "WP";
-    }
+    } else if (cleanedStr.startsWith("POC", 0)) {
+      cabWidth = cleanedStr.slice(3,5);
+      cabHeight = cleanedStr.slice(5);
+      cabinettype = "POC";
+    } 
     cabAdd(Number(cabWidth), cleanedStr, cabinettype, cabHeight, cabDepth) 
     
     

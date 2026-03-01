@@ -70,7 +70,13 @@ public class Canvasobject {
     @Column(name = "widthcabinet")
     private Float widthcabinet;
 
-    public Canvasobject(Integer id, Kitchen kitchen, String objectType, Float x, Float y, Float width, Float height, Float rotation, String color, String data, Instant createdAt, Instant updatedAt, Integer wallid, Integer relatedId, String objectname, Float scale, String cabinettype, Float depth, Float endX, Float endY, Float widthcabinet) {
+    @Column(name = "heightcabinet")
+    private Float heightcabinet;
+
+    @Column(name = "depthcabinet")
+    private Float depthcabinet;
+
+    public Canvasobject(Integer id, Kitchen kitchen, String objectType, Float x, Float y, Float width, Float height, Float rotation, String color, String data, Instant createdAt, Instant updatedAt, Integer wallid, Integer relatedId, String objectname, Float scale, String cabinettype, Float depth, Float endX, Float endY, Float widthcabinet, Float heightcabinet, Float depthcabinet) {
         this.id = id;
         this.kitchen = kitchen;
         this.objectType = objectType;
@@ -92,6 +98,8 @@ public class Canvasobject {
         this.endX = endX;
         this.endY = endY;
         this.widthcabinet = widthcabinet;
+        this.heightcabinet = heightcabinet;
+        this.depthcabinet = depthcabinet;
     }
 
     @Column(name = "objectname", length = 50)
@@ -138,6 +146,22 @@ public class Canvasobject {
 
     public void setWidthcabinet(Float widthcabinet) {
         this.widthcabinet = widthcabinet;
+    }
+
+    public Float getHeightcabinet() {
+        return heightcabinet;
+    }
+
+    public void setHeightcabinet(Float heightcabinet) {
+        this.heightcabinet = heightcabinet;
+    }
+
+    public Float getDepthcabinet() {
+        return depthcabinet;
+    }
+
+    public void setDepthcabinet(Float depthcabinet) {
+        this.depthcabinet = depthcabinet;
     }
 
     public Float getEndY() {

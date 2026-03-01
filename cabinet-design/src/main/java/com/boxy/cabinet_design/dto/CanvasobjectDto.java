@@ -44,6 +44,8 @@ public class CanvasobjectDto implements Serializable {
     private  Integer updateFlg;
     private  Integer relatedId2;
     private float widthcabinet;
+    private float heightcabinet;
+    private float depthcabinet;
     
     public Integer getRelatedId2() {
         return relatedId2;
@@ -72,7 +74,9 @@ public class CanvasobjectDto implements Serializable {
             @JsonProperty("wallid") Integer wallid,
             @JsonProperty("updateFlg") Integer updateFlg,
             @JsonProperty("relatedId2") Integer relatedId2,
-            @JsonProperty("widthcabinet") float widthcabinet) {
+            @JsonProperty("widthcabinet") float widthcabinet,
+            @JsonProperty("heightcabinet") float heightcabinet,
+            @JsonProperty("depthcabinet") float depthcabinet) {
         this.id = id;
         this.objectType = objectType;
         this.x = x;
@@ -95,5 +99,7 @@ public class CanvasobjectDto implements Serializable {
         this.updateFlg = updateFlg;
         this.relatedId2 = relatedId2;
         this.widthcabinet = widthcabinet;
+        this.heightcabinet = heightcabinet;
+        this.depthcabinet = depthcabinet;
     }
 }

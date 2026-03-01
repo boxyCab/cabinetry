@@ -203,7 +203,12 @@ const ElevationView = ({ canvasobjectList, pageIndex }) => {
         // } else  {
         //   canvasObjectT.y = ceilingHeightY;
         // }
-        canvasObjectT.y = ceilingHeightY;
+        if (canvasObjectT.height > 105) {
+          canvasObjectT.y = cabinetPositionY - scaleY * canvasObject.height;
+        } else {
+          canvasObjectT.y = ceilingHeightY;
+        }
+        
         canvascabinetObject.push(canvasObjectT);
       } else if (canvasObject.type === "islandiner") {
         if (canvasObject.cabinettype === "appliance") {

@@ -384,7 +384,8 @@ export const CanvasProvider = ({ children }) => {
                   x: newX,
                   y: newY,
                   widthcabinet: parseFloat(subObj.widthcabinet),
-                  width: subObj.width,
+                  heightcabinet: parseFloat(subObj.heightcabinet),
+                  depthcabinet: parseFloat(subObj.depthcabinet),
                   updateFlg: 2,
                 }
                 : item
@@ -396,6 +397,8 @@ export const CanvasProvider = ({ children }) => {
                 ? {
                   ...item,
                   width: parseFloat(subObj.widthcabinet),
+                  height: parseFloat(subObj.heightcabinet),
+                  depth: parseFloat(subObj.depthcabinet),
                   updateFlg: 2,
                 }
                 : item
@@ -500,13 +503,60 @@ export const CanvasProvider = ({ children }) => {
         let objectTypeBBCD = "lower";
         let canvasobjectEmpty = canvasobjectEmptyBase;
         let cabinetObjectEmpt = cabinetObjectEmptBase;
-        if (subObj.objectname.startsWith('WP')) {
+        // if (subObj.objectname.startsWith('WP')) {
+        //   objectTypeT = "high";
+        // } else if (subObj.objectname.startsWith('W')) {
+        //   objectTypeT = "upper";
+        //   canvasobjectEmpty = canvasobjectEmptyUpper;
+        //   cabinetObjectEmpt = cabinetObjectEmptUpper;
+        // }
+
+        if (subObj.objectname.startsWith('WP') || subObj.objectname.startsWith('POC') || 
+          subObj.objectname.startsWith('SOP')|| subObj.objectname.startsWith('COP')|| 
+          subObj.objectname.startsWith('DOP')) {
           objectTypeT = "high";
-        } else if (subObj.objectname.startsWith('W')) {
+        } else if (subObj.objectname.startsWith('WF')) {
+          let heightT = subObj.objectname.slice(4);        
+          if (heightT >= 96) {
+            objectTypeT = "high";
+          } else {
+            objectTypeT = "upper";
+            canvasobjectEmpty = canvasobjectEmptyUpper;
+            cabinetObjectEmpt = cabinetObjectEmptUpper;
+          }
+        }else if (subObj.objectname.startsWith('W')|| subObj.objectname.startsWith('WOC') || subObj.objectname.startsWith('PNW')) {
           objectTypeT = "upper";
           canvasobjectEmpty = canvasobjectEmptyUpper;
           cabinetObjectEmpt = cabinetObjectEmptUpper;
+        }  else if (subObj.objectname.startsWith('PNB')|| subObj.objectname.startsWith('PNI') ) {
+          let heightT = 0;
+          if (subObj.objectname.startsWith('PNB') || subObj.objectname.startsWith('PNI') ) {
+              heightT = parseInt(subObj.objectname.slice(3), 10);
+            } else {
+              heightT = parseInt(subObj.objectname.slice(4), 10);
+            }
+            if (heightT >= 96) {
+              objectTypeT = "high";
+            }
+        } else if (subObj.objectname.startsWith('SP')) {
+          let heightT = parseInt(subObj.objectname.slice(4), 10);
+          if (heightT >= 96) {
+            objectTypeT = "high";
+          } else {
+            let depthT = parseInt(subObj.objectname.slice(2,4), 10);
+            if (depthT === 12) {
+              objectTypeT = "upper";
+              canvasobjectEmpty = canvasobjectEmptyUpper;
+              cabinetObjectEmpt = cabinetObjectEmptUpper;
+            }
+          }
+        } else if (subObj.objectname.startsWith('RRP')) {
+          let heightT = parseInt(subObj.objectname.slice(5), 10);
+          if (heightT >= 96) {
+            objectTypeT = "high";
+          }
         }
+
         let subObjWidth = subObj.width;
         let subObjX = subObj.left;
         let subObjY = subObj.top;
@@ -576,6 +626,8 @@ export const CanvasProvider = ({ children }) => {
             wallid: null,
             updateFlg: 3,
             widthcabinet: parseFloat(subObj.widthcabinet),
+            heightcabinet: parseFloat(subObj.heightcabinet),
+            depthcabinet: parseFloat(subObj.depthcabinet),
           };
         }
         let wall = findCabinetWall(changedCanvasObj, newWallList);
@@ -1101,12 +1153,46 @@ export const CanvasProvider = ({ children }) => {
         let objectTypeT = "lower";
         let canvasobjectEmpty = canvasobjectEmptyBase;
         let cabinetObjectEmpt = cabinetObjectEmptBase;
-        if (subObj.objectname.startsWith('WP')) {
+        if (subObj.objectname.startsWith('WP') || subObj.objectname.startsWith('POC') || 
+          subObj.objectname.startsWith('SOP')|| subObj.objectname.startsWith('COP')|| 
+          subObj.objectname.startsWith('DOP')) {
           objectTypeT = "high";
-        } else if (subObj.objectname.startsWith('W')) {
+        } else if (subObj.objectname.startsWith('WF')) {
+          let heightT = parseInt(subObj.objectname.slice(4), 10);
+          if (heightT >= 96) {
+            objectTypeT = "high";
+          } else {
+            objectTypeT = "upper";
+          }
+        }else if (subObj.objectname.startsWith('W')|| subObj.objectname.startsWith('WOC') || subObj.objectname.startsWith('PNW')) {
           objectTypeT = "upper";
           canvasobjectEmpty = canvasobjectEmptyUpper;
           cabinetObjectEmpt = cabinetObjectEmptUpper;
+        }  else if (subObj.objectname.startsWith('PNB')|| subObj.objectname.startsWith('PNI') ) {
+          let heightT = 0;
+          if (subObj.objectname.startsWith('PNB') || subObj.objectname.startsWith('PNI') ) {
+              heightT = parseInt(subObj.objectname.slice(3), 10);
+            } else {
+              heightT = parseInt(subObj.objectname.slice(4), 10);
+            }
+            if (heightT >= 96) {
+              objectTypeT = "high";
+            }
+        } else if (subObj.objectname.startsWith('SP')) {
+          let heightT = parseInt(subObj.objectname.slice(4), 10);
+          if (heightT >= 96) {
+            objectTypeT = "high";
+          } else {
+            let depthT = parseInt(subObj.objectname.slice(2,4), 10);
+            if (depthT === 12) {
+              objectTypeT = "upper";
+            }
+          }
+        } else if (subObj.objectname.startsWith('RRP')) {
+          let heightT = parseInt(subObj.objectname.slice(5), 10);
+          if (heightT >= 96) {
+            objectTypeT = "high";
+          }
         }
         let subObjWidth = subObj.width;
         let subObjX = subObj.left;
@@ -1119,8 +1205,26 @@ export const CanvasProvider = ({ children }) => {
         if (objectTypeT === "lower" || objectTypeT === "islandiner" || objectTypeT === "islandouter") {
           heightObj = 34.5;
         } else if (objectTypeT === "upper" || objectTypeT === "high") {
-          if (subObj.cabinettype == "WP" && subObj.objectname.length == 7) {
-            heightObj = subObj.objectname.slice(-3);
+          if (subObj.cabinettype === "WP" ) {
+            if (subObj.objectname.length === 7) {
+              heightObj = subObj.objectname.slice(-3);
+            } else {
+              heightObj = subObj.objectname.slice(-2);
+            }
+          } else if (subObj.cabinettype === "POC" || subObj.cabinettype == "SOP"|| subObj.cabinettype == "COP"|| subObj.cabinettype == "DOP") {
+            if (subObj.objectname.length === 8) {
+              heightObj = subObj.objectname.slice(-3);
+            } else {
+              heightObj = subObj.objectname.slice(-2);
+            }
+          } else if (subObj.objectname.startsWith('PNB') || subObj.objectname.startsWith('PNI')  || subObj.objectname.startsWith('PNW')) {
+              heightObj = subObj.objectname.slice(3);
+          } else if (subObj.objectname.startsWith('WF')  ) {
+              heightObj = subObj.objectname.slice(4);
+          }  else if (subObj.objectname.startsWith('SP')) {
+             heightObj = subObj.objectname.slice(4);
+          } else if (subObj.objectname.startsWith('RRP')) {
+            heightObj = subObj.objectname.slice(5);
           } else {
             heightObj = subObj.objectname.slice(-2);
           }
@@ -1147,18 +1251,24 @@ export const CanvasProvider = ({ children }) => {
           updateFlg: 3,   //ADD
           flag: "addFlag",
           widthcabinet: parseFloat(subObj.widthcabinet),
+          heightcabinet: parseFloat(subObj.heightcabinet),
+          depthcabinet: parseFloat(subObj.depthcabinet),
         };
         subObj.id = canvasRandomId;
-        subObj.flag = "init"; // 标记新增已处理
+        subObj.relatedId = relatedIdT;
+        // subObj.flag = "init"; // 标记新增已处理
 
         if (subObj.cabinettype === "BLS" || subObj.cabinettype === "WLS") {
           obj.y = subObjY + subObj.width - subObj.depth;
           obj.relatedId2 = relatedIdTBBC;
+          subObj.relatedId2 = relatedIdTBBC;
         } else if (subObj.cabinettype === "SBD" || subObj.cabinettype === "WDC") {
           obj.y = subObjY + subObj.width - subObj.depth;
           obj.relatedId2 = relatedIdTBBC;
+          subObj.relatedId2 = relatedIdTBBC;
         } else if (subObj.cabinettype === "BBC" || subObj.cabinettype === "WBC") {
           obj.relatedId2 = relatedIdTBBC;
+          subObj.relatedId2 = relatedIdTBBC;
         }
         obj = { ...canvasobjectEmpty, ...obj };
         allSubObjects.push(obj);  // 添加到 allSubObjects 数组            
@@ -1167,7 +1277,7 @@ export const CanvasProvider = ({ children }) => {
         let cabConstructionLow = null;
         if (objectTypeT === "lower") {
           cabConstructionLow = cabConstruction2;
-        } else if (objectTypeT === "lower") {
+        } else if (objectTypeT === "upper") {
           cabConstructionLow = cabConstruction1;
         } else if (objectTypeT === "islandiner" || objectTypeT === "islandouter") {
           cabConstructionLow = cabConstruction3;

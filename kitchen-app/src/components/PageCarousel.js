@@ -145,6 +145,17 @@ export default function PageCarousel({ paramKitchenId, inputFlg, refresh, onOpen
       return false; // 返回 false
     }
 
+    // 检查cabinetDtoList中是否有柜子的wallid为null或空
+    if (data.cabinetDtoList && data.cabinetDtoList.length > 0) {
+      const hasInvalidWallId = data.cabinetDtoList.some(cabinet =>
+        cabinet.wallid === null || cabinet.wallid === undefined || cabinet.wallid === ''
+      );
+      if (hasInvalidWallId) {
+        showSnackbar("Please place all cabinets against the wall before saving", "error");
+        return false;
+      }
+    }
+
     try {
       // 2. 等待后端请求完成 
       const result = await updateData(data);
@@ -1046,6 +1057,18 @@ export default function PageCarousel({ paramKitchenId, inputFlg, refresh, onOpen
         <DialogActions sx={{ p: 2 }}>
           <Button
             onClick={() => {
+              // 重置updateFlag以防止后续切换时再次弹出对话框
+              const currentState = store.getState();
+              const currentCabinetObject = selectCabinetObject(currentState);
+              const updatedCabinetFlag = {
+                ...currentCabinetObject,
+                updateFlag: 0,
+                canvasWallList: currentCabinetObject.canvasWallList,
+                canvasObjectList: currentCabinetObject.canvasObjectList,
+                cabinetObjectList: currentCabinetObject.cabinetObjectList
+              };
+              dispatch(updateCabinet(updatedCabinetFlag));
+
               performNavClick(pendingIndex);
               handleClose();
             }}
@@ -1066,6 +1089,7 @@ export default function PageCarousel({ paramKitchenId, inputFlg, refresh, onOpen
                     }
                     handleClose(); // 关闭弹窗
                   } else {
+                    handleClose(); // 关闭弹窗
                     // 如果保存失败，可以选择不关闭弹窗，或者提示用户
                     console.error("Save failed, staying on page.");
                   }

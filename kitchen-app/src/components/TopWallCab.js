@@ -24,7 +24,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Dialog from '@mui/material/Dialog';
-import { TextField, Button, Box, Typography } from '@mui/material';
+import { TextField, Button, Box, Typography, Grid, InputAdornment } from '@mui/material';
 import { saveHistory, undoHistory, redoHistory, initHistory } from '../management/historyManager';
 
 const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }) => {
@@ -59,8 +59,14 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
   const showSnackbar = useSnackbar();
   const [tooltip, setTooltip] = React.useState({ visible: false, x: 0, y: 0, content: "" });
   const [fillerGroup, setFillerGroup] = React.useState(null);
+  const [spPnwGroup, setSpPnwGroup] = React.useState(null);
   const [newWidth, setNewWidth] = React.useState("");
+  const [newHeight, setNewHeight] = React.useState("");
+  const [newDepth, setNewDepth] = React.useState("");
+  const [spHeight, setSpHeight] = React.useState("");
+  const [spDepth, setSpDepth] = React.useState("");
   const [errorMessage, setErrorMessage] = React.useState('');
+  const [spErrorMessage, setSpErrorMessage] = React.useState('');
 
   const {
     contextMenu,
@@ -115,37 +121,141 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
 
     let snapX = null;
     let snapY = null;
-
+    let snapXWall = null;
+    let snapYWall = null;
+    let targetType = null;
+    let cabinettype = null;
+    let cabinetRotation = null;
     const movingBounds = movingObject.getBoundingRect(true);
-
+    cabinetRotation = movingObject.rotation;
     for (let i = 0; i < objects.length; i++) {
       const obj = objects[i];
       if (obj === movingObject) continue;
 
       const targetBounds = obj.getBoundingRect(true);
+      targetType = obj.objectType;
+      let targetCabinettype = obj.cabinettype;
+      let targetRotation = obj.rotation;
+      let targetX = targetBounds.left;
+      let targetY = targetBounds.top;
+      let targetWidth = targetBounds.width;
+      let targetHeight = targetBounds.height;
+      cabinettype = movingObject.cabinettype;
 
-      // --- 水平贴合逻辑 ---
-      if (Math.abs(movingBounds.left + movingBounds.width - targetBounds.left) <= SNAP_THRESHOLD) {
-        // moving 的右边 ≈ target 的左边
-        snapX = targetBounds.left - movingBounds.width;
-      } else if (Math.abs(movingBounds.left - (targetBounds.left + targetBounds.width)) <= SNAP_THRESHOLD) {
-        // moving 的左边 ≈ target 的右边
-        snapX = targetBounds.left + targetBounds.width;
+      if (targetCabinettype === "WLS" || targetCabinettype === "WDC") {
+        if (targetRotation === 0) {
+          if (cabinetRotation != targetRotation) {
+            targetX = targetBounds.left + targetBounds.width - obj.depth;
+          } else {
+            targetY = targetBounds.top + targetBounds.height - obj.depth;
+          }
+        } else if (targetRotation === 90) {
+          if (cabinetRotation != targetRotation) {
+            targetY = targetBounds.top + targetBounds.height - obj.depth;
+          }
+        } else if (targetRotation === 180) {
+          if (cabinetRotation != targetRotation) {
+            targetWidth = obj.depth;
+          }
+        } else if (targetRotation === 270) {
+          if (cabinetRotation != targetRotation) {
+            targetHeight = obj.depth;
+          } else {
+            targetX = targetBounds.left + targetBounds.width - obj.depth;
+          }
+        }
       }
+      // 270
+      if (Math.abs(movingBounds.left - targetX) <= SNAP_THRESHOLD &&
+        Math.abs(movingBounds.top - targetBounds.top) <= SNAP_THRESHOLD) {
+        snapX = targetX;
+        snapY = targetBounds.top;
+      }
+      if ((snapX !== null && snapY !== null) || (snapX !== null && snapYWall !== null ) || (snapXWall !== null && snapY !== null)) break;
+      if (Math.abs(movingBounds.left - targetX) <= SNAP_THRESHOLD) {
+        snapX = targetX;
+        if (Math.abs(movingBounds.top + movingBounds.height - targetY) <= SNAP_THRESHOLD) {
+          // moving 的底边 ≈ target 的顶边
+          snapY = targetY - movingBounds.height;
+        } else if (Math.abs(movingBounds.top - (targetY + targetHeight)) <= SNAP_THRESHOLD) {
+          // moving 的顶边 ≈ target 的底边
+          snapY = targetY + targetHeight;
+        } else {
+          snapY = null;
+        }
+      } else {
+        // --- 水平贴合逻辑 ---
+        if (Math.abs(movingBounds.left + movingBounds.width - targetX) <= SNAP_THRESHOLD) {
+          // moving 的右边 ≈ target 的左边
+          snapX = targetX - movingBounds.width;
+        } else if (Math.abs(movingBounds.left - (targetX + targetWidth)) <= SNAP_THRESHOLD) {
+          // moving 的左边 ≈ target 的右边
+          snapX = targetX + targetWidth;
+        } else {
+          snapX = null;
+        }
+      }
+      if ((snapX !== null && snapY !== null) || (snapX !== null && snapYWall !== null ) || (snapXWall !== null && snapY !== null)) break;
 
+      if (Math.abs(movingBounds.top - targetY) <= SNAP_THRESHOLD) {
+        snapY = targetY;
+        // --- 水平贴合逻辑 ---
+        if (Math.abs(movingBounds.left + movingBounds.width - targetX) <= SNAP_THRESHOLD) {
+          // moving 的右边 ≈ target 的左边
+          snapX = targetX - movingBounds.width;
+        } else if (Math.abs(movingBounds.left - (targetX + targetWidth)) <= SNAP_THRESHOLD) {
+          // moving 的左边 ≈ target 的右边
+          snapX = targetX + targetWidth;
+        } else {
+          snapX = null;
+        }
+      } else {
+        if (Math.abs(movingBounds.top + movingBounds.height - targetY) <= SNAP_THRESHOLD) {
+          // moving 的底边 ≈ target 的顶边
+          snapY = targetY - movingBounds.height;
+        } else if (Math.abs(movingBounds.top - (targetY + targetHeight)) <= SNAP_THRESHOLD) {
+          // moving 的顶边 ≈ target 的底边
+          snapY = targetY + targetHeight;
+        } else {
+          snapY = null;
+        }
+      }
       // --- 垂直贴合逻辑 ---
-      if (Math.abs(movingBounds.top + movingBounds.height - targetBounds.top) <= SNAP_THRESHOLD) {
-        // moving 的底边 ≈ target 的顶边
-        snapY = targetBounds.top - movingBounds.height;
-      } else if (Math.abs(movingBounds.top - (targetBounds.top + targetBounds.height)) <= SNAP_THRESHOLD) {
-        // moving 的顶边 ≈ target 的底边
-        snapY = targetBounds.top + targetBounds.height;
-      }
+
 
       // ✅ 一旦找到满足条件的贴合对象，就直接贴合（不再继续计算更近的）
-      if (snapX !== null && snapY !== null) break;
-    }
+      if ((snapX !== null && snapY !== null) || (snapX !== null && snapYWall !== null ) || (snapXWall !== null && snapY !== null)) break;
+      // wall
+      if (Math.abs(targetType === "wall")) {
 
+        if (Math.abs(movingBounds.left + movingBounds.width - targetX) <= SNAP_THRESHOLD) {
+          // moving 的右边 ≈ target 的左边
+          snapXWall = targetX - movingBounds.width;
+        } else if (Math.abs(movingBounds.left - (targetX + targetWidth)) <= SNAP_THRESHOLD) {
+          // moving 的左边 ≈ target 的右边
+          snapXWall = targetX + targetWidth;
+        } else
+          if (Math.abs(movingBounds.top + movingBounds.height - targetY) <= SNAP_THRESHOLD) {
+            // moving 的底边 ≈ target 的顶边
+            snapYWall = targetY - movingBounds.height;
+          } else if (Math.abs(movingBounds.top - (targetY + targetHeight)) <= SNAP_THRESHOLD) {
+            // moving 的顶边 ≈ target 的底边
+            snapYWall = targetY + targetHeight;
+          } else
+            if (cabinettype === "WLS" || cabinettype === "WDC" ||
+              cabinettype === "WBC" || cabinettype === "WBCL" || cabinettype === "WBCR") {
+              if (snapXWall !== null && snapYWall !== null) break;
+            }
+
+
+      }
+    }
+    if (snapXWall !== null) {
+      movingObject.left = snapXWall;
+    }
+    if (snapYWall !== null) {
+      movingObject.top = snapYWall;
+    }
     // --- 应用贴合 ---
     if (snapX !== null) {
       movingObject.left = snapX;
@@ -154,7 +264,8 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
       movingObject.top = snapY;
     }
 
-    if (snapX !== null || snapY !== null) {
+
+    if (snapX !== null || snapY !== null || snapXWall !== null || snapYWall !== null) {
       requestAnimationFrame(() => {
         movingObject.setCoords();
         canvas.renderAll();
@@ -294,7 +405,7 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
     const currentCabinetObject = selectCabinetObject(store.getState());
     getSubmitData(currentCabinetObject);
     // Save history for Undo
-    saveHistory(getCanvas('canvas1'), currentCabinetObject);
+    saveHistory(getCanvas('canvas2'), currentCabinetObject);
     setTrigger(prev => !prev);
 
   }, [snapToNearbyObjects, getSubmitData]);
@@ -394,7 +505,7 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
       deleteSelectedObject();
     }
 
-    let canvas = getCanvas('canvas1');
+    let canvas = getCanvas('canvas2');
     if (!canvas) return;
 
     // Undo (Ctrl+Z or Cmd+Z)
@@ -449,23 +560,42 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
     // 只有右键才需要我们干预
     if (event.button === 2) {
       const target = canvas.findTarget(event, false) || canvas.getActiveObject();
+      if (target.flag != "addFlag"  ) {
+        if (target && (target.type === "group" || target.group) && (target.cabinettype === "FILLER" || target.cabinettype === "WF")) {
+          // 右键点击 FILLER
+          const group = target.type === "group" ? target : target.group;
+          setFillerGroup(group);
+          setNewWidth((group.widthcabinet).toFixed(1));
+          setNewHeight((group.heightcabinet || 0).toFixed(1));
+          setNewDepth((group.depthcabinet || 0).toFixed(1));
 
-      if (target && (target.type === "group" || target.group) && target.cabinettype === "FILLER") {
-        // 右键点击 FILLER
-        const group = target.type === "group" ? target : target.group;
-        setFillerGroup(group);
-        setNewWidth((group.widthcabinet).toFixed(1));
+          event.preventDefault();
+          event.stopPropagation();
+        } else if (target && (target.type === "group" || target.group) && (target.cabinettype === "SP" || target.cabinettype === "PNW")) {
+          // 右键点击 SP/PNW
+          const group = target.type === "group" ? target : target.group;
+          setSpPnwGroup(group);
+          setSpHeight((group.heightcabinet || 0).toFixed(1));
+          setSpDepth((group.depthcabinet || 0).toFixed(1));
 
-        event.preventDefault();
-        event.stopPropagation();
-      } else {
-        // 普通右键菜单 -> 调用 Ref 中的最新函数
-        if (handleContextMenuRef.current) {
-          handleContextMenuRef.current(event);
+          event.preventDefault();
+          event.stopPropagation();
+        } else {
+          // 普通右键菜单 -> 调用 Ref 中的最新函数
+          if (handleContextMenuRef.current) {
+            handleContextMenuRef.current(event);
+          }
+          event.preventDefault();
+          event.stopPropagation();
         }
-        event.preventDefault();
-        event.stopPropagation();
-      }
+      } else {
+          // 普通右键菜单 -> 调用 Ref 中的最新函数
+          if (handleContextMenuRef.current) {
+            handleContextMenuRef.current(event);
+          }
+          event.preventDefault();
+          event.stopPropagation();
+        }
     }
     // ⚠️ 已删除左键逻辑，交给 Fabric 原生处理
   }, []);
@@ -564,7 +694,8 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
   return (
 
     <div style={{ width: '1300px', height: '100%', position: 'relative', cursor: 'context-menu' }}
-      onContextMenu={handleContextMenu}>
+    >
+      {/* onContextMenu={handleContextMenu} */}
       <Menu
         open={contextMenu !== null && (cabinetGroup || []).length > 0}
         onClose={handleCloseMenu}
@@ -586,70 +717,129 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
         )}
       </Menu>
       <div className="canvas-container">
-        <canvas ref={canvasRef} id="canvas2" onContextMenu={handleContextMenu} />
+        <canvas ref={canvasRef} id="canvas2" />
       </div>
       <Tooltip {...tooltip} />
       <Dialog
         open={!!fillerGroup}
         onClose={() => setFillerGroup(null)}
-        maxWidth="xs"  // 限制最大宽度
-        fullWidth      // 让对话框占满最大宽度
+        maxWidth="sm"
+        fullWidth
         PaperProps={{
           style: {
             borderRadius: 12,
-            padding: '16px 20px',
+            padding: '20px 24px',
           },
         }}
       >
         <DialogTitle
           sx={{
-            fontSize: '1.1rem',
+            fontSize: '1.2rem',
             fontWeight: 600,
             textAlign: 'center',
-            pb: 1,
+            pb: 2,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            mx: -2,
           }}
         >
-          Edit FILLER Width
+          Edit FILLER Dimensions
         </DialogTitle>
 
         <DialogContent
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-            mt: 1,
+            mt: 2,
+            pb: 1,
           }}
         >
-          <TextField
-            label="Width (inches)"
-            type="number"
-            value={newWidth}
-            onChange={(e) => setNewWidth(e.target.value)}
-            fullWidth
-            variant="outlined"
-            size="medium"
-            sx={{
-              '& .MuiInputBase-root': {
-                fontSize: '1rem',
-                height: 52, // 稍高一点给 label 腾位置
-                alignItems: 'center',
-              },
-              '& .MuiInputLabel-root': {
-                fontSize: '0.9rem',
-                transform: 'translate(14px, 18px) scale(1)',
-              },
-              '& .MuiInputLabel-shrink': {
-                transform: 'translate(14px, -5px) scale(0.8)',
-              },
-            }}
-            InputLabelProps={{
-              shrink: true, // 强制浮动，避免被遮住
-            }}
-          />
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: 'block',
+                    mb: 0.5,
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    color: 'text.primary',
+                  }}
+                >
+                  Width
+                </Typography>
+                <TextField
+                  type="number"
+                  value={newWidth}
+                  onChange={(e) => setNewWidth(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="Enter width"
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end" sx={{ fontSize: '0.75rem' }}>in</InputAdornment>,
+                  }}
+                />
+              </Box>
+            </Grid>
 
+            <Grid item xs={6}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: 'block',
+                    mb: 0.5,
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    color: 'text.primary',
+                  }}
+                >
+                  Depth
+                </Typography>
+                <TextField
+                  type="number"
+                  value={newDepth}
+                  onChange={(e) => setNewDepth(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="Enter depth"
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end" sx={{ fontSize: '0.75rem' }}>in</InputAdornment>,
+                  }}
+                />
+              </Box>
+            </Grid>
 
-
-
+            <Grid item xs={12}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: 'block',
+                    mb: 0.5,
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    color: 'text.primary',
+                  }}
+                >
+                  Height
+                </Typography>
+                <TextField
+                  type="number"
+                  value={newHeight}
+                  onChange={(e) => setNewHeight(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="Enter height"
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end" sx={{ fontSize: '0.75rem' }}>in</InputAdornment>,
+                  }}
+                />
+              </Box>
+            </Grid>
+          </Grid>
         </DialogContent>
         {/* 添加错误提示区域 */}
         {errorMessage && (
@@ -677,10 +867,12 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
           <Button
             onClick={() => {
               if (fillerGroup && !isNaN(newWidth) && newWidth > 0) {
-                // check width 
+                // Validate dimensions
                 let nameCab = fillerGroup.objectname;
                 let hasError = false;
                 let errorMsg = '';
+
+                // Width validation
                 if (nameCab === "WF06" && newWidth > 6) {
                   hasError = true;
                   errorMsg = 'WF06 cabinet width cannot exceed 6\'\'';
@@ -689,89 +881,137 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
                   errorMsg = 'WF03 cabinet width cannot exceed 3\'\'';
                 }
 
+                // Height validation
+                if (!hasError && newHeight && (isNaN(newHeight) || newHeight <= 0 ||
+                  nameCab === "WF0351" && newHeight > 51 ||
+                  nameCab === "WF03108" && newHeight > 108)) {
+                  hasError = true;
+                  errorMsg = 'Height must be a positive number';
+                }
+
+                // Depth validation
+                if (!hasError && newDepth && (isNaN(newDepth) || newDepth <= 0)) {
+                  hasError = true;
+                  errorMsg = 'Depth must be a positive number';
+                }
+
                 // 如果有错误，显示提示，不执行后续逻辑
                 if (hasError) {
                   setErrorMessage(errorMsg);
                   return;
                 }
+
                 const cabinetObject = selectCabinetObject(store.getState());
                 let canvas = getCanvas('canvas2');
                 saveHistory(canvas, cabinetObject);
 
                 // 保存新的逻辑宽度
                 fillerGroup.widthcabinet = parseFloat(newWidth);
-                let newWidthActual = parseFloat(newWidth) * fillerGroup.scale;;
+
+                // 保存高度和深度（如果提供了）
+                if (newHeight && !isNaN(newHeight)) {
+                  fillerGroup.heightcabinet = parseFloat(newHeight);
+                }
+                if (newDepth && !isNaN(newDepth)) {
+                  fillerGroup.depthcabinet = parseFloat(newDepth);
+                }
+
+                let newWidthActual = parseFloat(newWidth) * fillerGroup.scale;
+                // 使用原有的depthcabinet如果newDepth未提供或为NaN
+                let depthToUse = (newDepth && !isNaN(newDepth)) ? parseFloat(newDepth) : fillerGroup.depthcabinet;
+                let newDepthActual = depthToUse * fillerGroup.scale;
+                // 使用原有的heightcabinet如果newHeight未提供或为NaN
+                let heightToUse = (newHeight && !isNaN(newHeight)) ? parseFloat(newHeight) : fillerGroup.heightcabinet;
+                let newDHeightActual = heightToUse * fillerGroup.scale;
+
                 let oldLeft = fillerGroup.left;
                 let oldTop = fillerGroup.top;
+
                 // 修改 group 内部每个对象的宽度
                 if (fillerGroup.rotation === 90 || fillerGroup.rotation === 270) {
                   const oldWidth = fillerGroup.height;
-                  const scaleX = newWidthActual / oldWidth; // 计算新的横向缩放比例
-                  console.log("旧高度:", oldWidth, "新高度:", newWidthActual, "比例:", scaleX);
-                  // 记录原来的位置（左上角）
+                  const oldDepth = fillerGroup.width;
+                  // 分别计算两个方向的缩放比例
+                  const scaleX = newWidthActual / oldWidth;  // 高度方向（逻辑宽度）
+                  const scaleDepth = newDepthActual / oldDepth;  // 宽度方向（逻辑深度）
+                  console.log("旧高度:", oldWidth, "新高度:", newWidthActual, "比例X:", scaleX);
+                  console.log("旧深度:", oldDepth, "新深度:", newDepthActual, "比例Depth:", scaleDepth);
+
                   fillerGroup._objects.forEach(obj => {
                     if (obj.type === 'rect') {
                       obj.set({
-                        height: newWidthActual,  // 等比例调整 rect 的宽度
-                        top: obj.top * scaleX     // 保持位置比例一致
+                        height: newWidthActual,
+                        width: newDepthActual,
+                        // 根据两个方向分别缩放位置
+                        top: obj.top * scaleX,
+                        left: obj.left * scaleDepth,
                       });
                     } else {
-                      // 如果有其他类型对象，比如 text 或 image，可选地调整位置
                       obj.set({
-                        top: obj.top * scaleX
+                        top: obj.top * scaleX,
+                        left: obj.left * scaleDepth,
                       });
                     }
                   });
                   console.log("fillerGroup.height", fillerGroup.height);
-                  // 更新 group 封装盒
-                  // fillerGroup.addWithUpdate();
                   fillerGroup.setCoords();
                   fillerGroup.height = newWidthActual;
-                  // fillerGroup.top = newPosition;
+                  fillerGroup.width = newDepthActual;
                   console.log("fillerGroup.top", fillerGroup.top);
                   if (fillerGroup.rotation === 270) {
                     oldTop = oldTop + (oldWidth - newWidthActual);
+                    oldLeft = oldLeft + (oldDepth - newDepthActual);
                   }
                 } else {
-
                   const oldWidth = fillerGroup.width;
-                  const scaleX = newWidthActual / oldWidth; // 计算新的横向缩放比例
+                  const oldDepth = fillerGroup.height;
+                  // 分别计算两个方向的缩放比例
+                  const scaleX = newWidthActual / oldWidth;  // 宽度方向
+                  const scaleDepth = newDepthActual / oldDepth;  // 高度方向（逻辑深度）
+                  console.log("旧宽度:", oldWidth, "新宽度:", newWidthActual, "比例X:", scaleX);
+                  console.log("旧深度:", oldDepth, "新深度:", newDepthActual, "比例Depth:", scaleDepth);
+
                   fillerGroup._objects.forEach(obj => {
                     if (obj.type === 'rect') {
                       obj.set({
-                        width: newWidthActual,  // 等比例调整 rect 的宽度
-                        left: obj.left * scaleX     // 保持位置比例一致
+                        width: newWidthActual,
+                        height: newDepthActual,
+                        // 根据两个方向分别缩放位置
+                        left: obj.left * scaleX,
+                        top: obj.top * scaleDepth,
                       });
                     } else {
-                      // 如果有其他类型对象，比如 text 或 image，可选地调整位置
                       obj.set({
-                        left: obj.top * scaleX
+                        left: obj.left * scaleX,
+                        top: obj.top * scaleDepth,
                       });
                     }
                   });
-                  // 更新 group 封装盒
-                  // fillerGroup.addWithUpdate();
                   fillerGroup.setCoords();
                   fillerGroup.width = newWidthActual;
+                  fillerGroup.height = newDepthActual;
                   if (fillerGroup.rotation === 180) {
                     oldLeft = oldLeft + (oldWidth - newWidthActual);
+                  } else if (fillerGroup.rotation === 0) {
+                    oldTop = oldTop + (oldDepth - newDepthActual);
                   }
                 }
+
                 // 更新 group 封装信息
                 fillerGroup.set({
-                  scaleY: 1,       // 取消缩放，保留实际几何
-                  left: oldLeft,   // 恢复原来的 left
-                  top: oldTop      // 恢复原来的 top
+                  scaleY: 1,
+                  left: oldLeft,
+                  top: oldTop
                 });
                 console.log("fillerGroup.width", fillerGroup.width);
                 console.log("scale", fillerGroup.scale);
                 console.log("oldLeft", oldLeft);
                 console.log("oldTop", oldTop);
+
                 // 更新坐标并重新渲染
                 fillerGroup.setCoords();
                 fabricCanvasRef.current.requestRenderAll();
                 fillerGroup.flag = "modifyFiller";
-
 
                 let canvasObjectStore = cabinetObject.canvasObjectList;
                 let cabinetListStore = cabinetObject.cabinetObjectList;
@@ -783,42 +1023,69 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
                 if (fillerGroup.rotation === 270) {
                   newY = fillerGroup.top + fillerGroup.height;
                 }
+                
                 // 更新 Redux 和后端数据
                 const matchingCanvas = canvasObjectStore.filter(cabinet => cabinet.id === fillerGroup.id);
                 if (matchingCanvas.length > 0) {
                   let relatedId = matchingCanvas[0].relatedId;
+
                   // 更新 canvasObjectStore
-                  canvasObjectStore = canvasObjectStore.map(item =>
-                    item.id === fillerGroup.id
-                      ? {
+                  canvasObjectStore = canvasObjectStore.map(item => {
+                    if (item.id === fillerGroup.id) {
+                      let updateData = {
                         ...item,
                         x: newX,
                         y: newY,
                         widthcabinet: parseFloat(newWidth),
                         width: newWidthActual,
+                        height: newDHeightActual,
+                        depth: newDepthActual,
                         updateFlg: 2,
+                      };
+
+                      // 添加高度和深度（如果提供了）
+                      if (newHeight && !isNaN(newHeight)) {
+                        updateData.heightcabinet = parseFloat(newHeight);
                       }
-                      : item
-                  );
+                      if (newDepth && !isNaN(newDepth)) {
+                        updateData.depthcabinet = parseFloat(newDepth);
+                      }
+
+                      return updateData;
+                    }
+                    return item;
+                  });
 
                   // 更新 cabinetListStore
-                  cabinetListStore = cabinetListStore.map(item =>
-                    item.id === relatedId
-                      ? {
+                  cabinetListStore = cabinetListStore.map(item => {
+                    if (item.id === relatedId) {
+                      let cabinetUpdateData = {
                         ...item,
                         width: parseFloat(newWidth),
                         updateFlg: 2,
+                      };
+
+                      // 添加高度和深度（如果提供了）
+                      if (newHeight && !isNaN(newHeight)) {
+                        cabinetUpdateData.height = parseFloat(newHeight);
                       }
-                      : item
-                  );
+                      if (newDepth && !isNaN(newDepth)) {
+                        cabinetUpdateData.depth = parseFloat(newDepth);
+                      }
+
+                      return cabinetUpdateData;
+                    }
+                    return item;
+                  });
                 }
+
                 const updatedCabinetFlag = {
                   ...cabinetObject,
                   canvasObjectList: canvasObjectStore,
                   cabinetObjectList: cabinetListStore,
                   updateFlag: 1
                 };
-                dispatch(updateCabinet(updatedCabinetFlag)); // 这里使用更新后的状态
+                dispatch(updateCabinet(updatedCabinetFlag));
                 setTrigger(prev => !prev);
               }
               setFillerGroup(null);
@@ -830,6 +1097,323 @@ const TopWallCab = ({ canvasobjectListParam, refreshParam, trigger, setTrigger }
             Confirm
           </Button>
 
+        </DialogActions>
+      </Dialog>
+
+      {/* SP/PNW Edit Dialog */}
+      <Dialog
+        open={!!spPnwGroup}
+        onClose={() => setSpPnwGroup(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          style: {
+            borderRadius: 12,
+            padding: '20px 24px',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontSize: '1.2rem',
+            fontWeight: 600,
+            textAlign: 'center',
+            pb: 2,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            mx: -2,
+          }}
+        >
+          Edit SP/PNW Dimensions
+        </DialogTitle>
+
+        <DialogContent
+          sx={{
+            mt: 2,
+            pb: 1,
+          }}
+        >
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: 'block',
+                    mb: 0.5,
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    color: 'text.primary',
+                  }}
+                >
+                  Height
+                </Typography>
+                <TextField
+                  type="number"
+                  value={spHeight}
+                  onChange={(e) => setSpHeight(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="Enter height"
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end" sx={{ fontSize: '0.75rem' }}>in</InputAdornment>,
+                  }}
+                />
+              </Box>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: 'block',
+                    mb: 0.5,
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    color: 'text.primary',
+                  }}
+                >
+                  Depth
+                </Typography>
+                <TextField
+                  type="number"
+                  value={spDepth}
+                  onChange={(e) => setSpDepth(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="Enter depth"
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end" sx={{ fontSize: '0.75rem' }}>in</InputAdornment>,
+                  }}
+                />
+              </Box>
+            </Grid>
+          </Grid>
+        </DialogContent>
+
+        {/* SP/PNW Error Message */}
+        {spErrorMessage && (
+          <Box sx={{
+            p: 2,
+            bgcolor: 'error.main',
+            color: 'white',
+            textAlign: 'center',
+            borderRadius: 1,
+            mx: 2,
+            mb: 1
+          }}>
+            <Typography variant="body2">
+              ⚠️ {spErrorMessage}
+            </Typography>
+          </Box>
+        )}
+
+        <DialogActions sx={{ justifyContent: 'flex-end', pt: 1, pb: 1.5 }}>
+          <Button
+            onClick={() => setSpPnwGroup(null)}
+            sx={{ fontSize: '0.9rem', textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              if (spPnwGroup) {
+                let hasError = false;
+                let errorMsg = '';
+                let nameCab = spPnwGroup.objectname;
+
+                // Height validation
+                if (spHeight && (isNaN(spHeight) || spHeight <= 0)) {
+                  hasError = true;
+                  errorMsg = 'Height must be a positive number';
+                } else if (!hasError && spHeight) {
+                  if (nameCab === "PNW48" && spHeight > 48) {
+                    hasError = true;
+                    errorMsg = 'PNW48 cabinet height cannot exceed 48\'\'';
+                  } else if (nameCab === "SP1239" && spHeight > 39) {
+                    hasError = true;
+                    errorMsg = 'SP1239 cabinet height cannot exceed 39\'\'';
+                  } else if (nameCab === "SP1251" && spHeight > 51) {
+                    hasError = true;
+                    errorMsg = 'SP1251 cabinet height cannot exceed 51\'\'';
+                  }
+                }
+
+                // Depth validation
+                if (!hasError && spDepth && (isNaN(spDepth) || spDepth <= 0)) {
+                  hasError = true;
+                  errorMsg = 'Depth must be a positive number';
+                }
+
+                if (hasError) {
+                  setSpErrorMessage(errorMsg);
+                  return;
+                }
+
+                const cabinetObject = selectCabinetObject(store.getState());
+                let canvas = getCanvas('canvas2');
+                saveHistory(canvas, cabinetObject);
+
+                // Save height and depth
+                if (spHeight && !isNaN(spHeight)) {
+                  spPnwGroup.heightcabinet = parseFloat(spHeight);
+                }
+                if (spDepth && !isNaN(spDepth)) {
+                  spPnwGroup.depthcabinet = parseFloat(spDepth);
+                }
+
+                // Calculate actual dimensions
+                let heightToUse = (spHeight && !isNaN(spHeight)) ? parseFloat(spHeight) : spPnwGroup.heightcabinet;
+                let newHeightActual = heightToUse * spPnwGroup.scale;
+                let depthToUse = (spDepth && !isNaN(spDepth)) ? parseFloat(spDepth) : spPnwGroup.depthcabinet;
+                let newDepthActual = depthToUse * spPnwGroup.scale;
+
+                let oldLeft = spPnwGroup.left;
+                let oldTop = spPnwGroup.top;
+
+                // Modify group objects based on rotation
+                if (spPnwGroup.rotation === 90 || spPnwGroup.rotation === 270) {
+                  const oldDepth = spPnwGroup.width;
+                  const scaleDepth = newDepthActual / oldDepth;
+
+                  spPnwGroup._objects.forEach(obj => {
+                    if (obj.type === 'rect') {
+                      obj.set({
+                        width: newDepthActual,
+                        left: obj.left * scaleDepth,
+                      });
+                    } else {
+                      obj.set({
+                        left: obj.left * scaleDepth,
+                      });
+                    }
+                  });
+
+                  spPnwGroup.setCoords();
+                  spPnwGroup.width = newDepthActual;
+
+                  if (spPnwGroup.rotation === 270) {
+                    oldLeft = oldLeft + (oldDepth - newDepthActual);
+                  }
+                } else {
+                  const oldHeight = spPnwGroup.height;
+                  const scaleHeight = newDepthActual / oldHeight;
+
+                  spPnwGroup._objects.forEach(obj => {
+                    if (obj.type === 'rect') {
+                      obj.set({
+                        height: newDepthActual,
+                        top: obj.top * scaleHeight,
+                      });
+                    } else {
+                      obj.set({
+                        top: obj.top * scaleHeight,
+                      });
+                    }
+                  });
+
+                  spPnwGroup.setCoords();
+                  spPnwGroup.height = newDepthActual;
+
+                  if (spPnwGroup.rotation === 0) {
+                    oldTop = oldTop + (oldHeight - newDepthActual);
+                  }
+                }
+
+                // Update group properties
+                spPnwGroup.set({
+                  scaleY: 1,
+                  left: oldLeft,
+                  top: oldTop
+                });
+
+                // Update canvas
+                spPnwGroup.setCoords();
+                fabricCanvasRef.current.requestRenderAll();
+                spPnwGroup.flag = "modifySpPnw";
+
+                // Update Redux and backend data
+                let canvasObjectStore = cabinetObject.canvasObjectList;
+                let cabinetListStore = cabinetObject.cabinetObjectList;
+                let newX = spPnwGroup.left;
+                let newY = spPnwGroup.top;
+
+                if (spPnwGroup.rotation === 180) {
+                  newX = spPnwGroup.left + spPnwGroup.width;
+                }
+                if (spPnwGroup.rotation === 270) {
+                  newY = spPnwGroup.top + spPnwGroup.height;
+                }
+
+                const matchingCanvas = canvasObjectStore.filter(cabinet => cabinet.id === spPnwGroup.id);
+                if (matchingCanvas.length > 0) {
+                  let relatedId = matchingCanvas[0].relatedId;
+
+                  // Update canvasObjectStore
+                  canvasObjectStore = canvasObjectStore.map(item => {
+                    if (item.id === spPnwGroup.id) {
+                      let updateData = {
+                        ...item,
+                        x: newX,
+                        y: newY,
+                        height : newHeightActual,
+                        depth : newDepthActual,
+                        updateFlg: 2,
+                      };
+
+                      if (spHeight && !isNaN(spHeight)) {
+                        updateData.heightcabinet = parseFloat(spHeight);
+                      }
+                      if (spDepth && !isNaN(spDepth)) {
+                        updateData.depthcabinet = parseFloat(spDepth);
+                      }
+
+                      return updateData;
+                    }
+                    return item;
+                  });
+
+                  // Update cabinetListStore
+                  cabinetListStore = cabinetListStore.map(item => {
+                    if (item.id === relatedId) {
+                      let cabinetUpdateData = {
+                        ...item,
+                        updateFlg: 2,
+                      };
+
+                      if (spHeight && !isNaN(spHeight)) {
+                        cabinetUpdateData.height = parseFloat(spHeight);
+                      }
+                      if (spDepth && !isNaN(spDepth)) {
+                        cabinetUpdateData.depth = parseFloat(spDepth);
+                      }
+
+                      return cabinetUpdateData;
+                    }
+                    return item;
+                  });
+                }
+
+                const updatedCabinetFlag = {
+                  ...cabinetObject,
+                  canvasObjectList: canvasObjectStore,
+                  cabinetObjectList: cabinetListStore,
+                  updateFlag: 1
+                };
+                dispatch(updateCabinet(updatedCabinetFlag));
+                setTrigger(prev => !prev);
+              }
+              setSpPnwGroup(null);
+            }}
+            variant="contained"
+            color="primary"
+            sx={{ fontSize: '0.9rem', textTransform: 'none' }}
+          >
+            Confirm
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

@@ -45,8 +45,8 @@ const CabinetVanity1000 = () => {
         { id: '4', image: '/cabinets/base/Base Vanity VB36DR.png', boxname: 'Base Vanity VB36DR', comments: 'Two doors One false drawer front Two drawers 12″ wide' , buttonlist1 :['VB36DR'],buttonlist2 :[]},
         { id: '5', image: '/cabinets/base/Base Vanity VB(48 60)DS.png', boxname: 'Base Vanity VB(48/60)DS', comments: 'One false drawer front Two doors Six drawers 12″ wide' , buttonlist1 :['VB48DS','VB60DS'],buttonlist2 :[]},
         { id: '6', image: '/cabinets/base/Base Vanity VB60DC.png', boxname: 'Base Vanity VB60DC', comments: 'Two false drawer fronts Four doors Three drawers 12″ wide' , buttonlist1 :['VB60DC'],buttonlist2 :[]},
-        //{ id: '7', image: '/cabinets/base/Knee Drawer.png', boxname: 'Knee Drawer', comments: 'One drawer Drawer front 6-1/4″ height' , buttonlist1 :['KD27','KD30','KD36'],buttonlist2 :[]},
-  ]);
+        { id: '7', image: '/cabinets/base/Vanity Open Cabinet.png', boxname: 'Vanity Open Cabinet', comments: 'One shelf' , buttonlist1 :['VOC12','VOC15','VOC18'],buttonlist2 :['VOC21']},
+         ]);
     }
     
   }, [cabActiveId]);
@@ -82,7 +82,10 @@ const CabinetVanity1000 = () => {
     }else if (cleanedStr.startsWith("VB", 0)) {
       cabWidth = cleanedStr.slice(2,4);
       cabinettype = "VB";
-    } else {
+    } else if (cleanedStr.startsWith("VOC", 0)) {
+      cabWidth = cleanedStr.slice(3);
+      cabinettype = "VOC";
+    }else {
       cabWidth = cleanedStr.slice(1);
       cabinettype = "B";
     }

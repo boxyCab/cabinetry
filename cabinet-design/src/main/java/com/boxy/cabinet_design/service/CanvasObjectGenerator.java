@@ -178,7 +178,9 @@ public class CanvasObjectGenerator {
                         canvasObject.getDepth(),
                         canvasObject.getWallid(), 0,
                         canvasObject.getRelatedId2(),
-                        canvasObject.getWidthcabinet()
+                        canvasObject.getWidthcabinet() != null ? canvasObject.getWidthcabinet() : 0f,
+                        canvasObject.getHeightcabinet() != null ? canvasObject.getHeightcabinet() : 0f,
+                        canvasObject.getDepthcabinet() != null ? canvasObject.getDepthcabinet() : 0f
                 ))
                 .collect(Collectors.toList());
 
@@ -227,7 +229,9 @@ public class CanvasObjectGenerator {
                         canvasObject.getDepth(),
                         canvasObject.getWallid(), 0,
                         canvasObject.getRelatedId2(),
-                        canvasObject.getWidthcabinet()
+                        canvasObject.getWidthcabinet() != null ? canvasObject.getWidthcabinet() : 0f,
+                        canvasObject.getHeightcabinet() != null ? canvasObject.getHeightcabinet() : 0f,
+                        canvasObject.getDepthcabinet() != null ? canvasObject.getDepthcabinet() : 0f
                 ))
                 .collect(Collectors.toList());
 
@@ -1651,6 +1655,8 @@ public class CanvasObjectGenerator {
         canvasObject.setCabinettype(cabinet.getCabinettype());
         canvasObject.setDepth(depth);
         canvasObject.setWidthcabinet(cabinet.getWidth());
+        canvasObject.setHeightcabinet(cabinet.getHeight());
+        canvasObject.setDepthcabinet((float) cabinet.getDepth());
         return canvasObject;
     }
 
@@ -1809,6 +1815,8 @@ public class CanvasObjectGenerator {
         canvasObject.setCabinettype(cabinet.getCabinettype());
         canvasObject.setDepth(depth);
         canvasObject.setWidthcabinet(cabinet.getWidth());
+        canvasObject.setHeightcabinet(cabinet.getHeight());
+        canvasObject.setDepthcabinet((float) cabinet.getDepth());
         return canvasObject;
     }
 
